@@ -6,4 +6,6 @@ A better U of I Bus App
 
 - Aaron Gros
 - Shaw Kagawa
-- Sudhesh
+- Sudhesh Sahu
+
+Mentor: Karthik Shankar
