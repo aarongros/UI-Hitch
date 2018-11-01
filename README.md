@@ -28,3 +28,6 @@ personalize their transportation schedule, and help them out with their daily li
 - Sudhesh Sahu
 
 Mentor: Karthik Shankar
+
+### Reference Links
+- [Midpoint Presentation](https://docs.google.com/presentation/d/1zAWt45OXv4SoW_EFxWksE80i8955x-cuP_uj2kG6XKY/edit?usp=sharing)
