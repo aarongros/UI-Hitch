@@ -30,4 +30,4 @@ personalize their transportation schedule, and help them out with their daily li
 Mentor: Karthik Shankar
 
 ### Reference Links
-- [Midpoint Presentation](https://docs.google.com/presentation/d/1zAWt45OXv4SoW_EFxWksE80i8955x-cuP_uj2kG6XKY/edit?usp=sharing)
+- [Midpoint Presentation](https://docs.google.com/presentation/d/1h3yaCI4ZFQ-jj2gOQ_fZUf455Lsxr5-1NUgchRtpApg/edit?ts=5bda55f4)
