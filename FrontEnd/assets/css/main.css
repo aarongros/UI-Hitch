@@ -3616,6 +3616,12 @@ input, select, textarea {
 				color: inherit;
 			}
 
+			#banner .col-6 {
+				margin: auto;
+    		width: 50%;
+    		padding: 10px;
+			}
+
 		#banner .more {
 			-moz-transition: -moz-transform 0.75s ease, opacity 0.75s ease;
 			-webkit-transition: -webkit-transform 0.75s ease, opacity 0.75s ease;
