@@ -30,5 +30,7 @@ In format:
 
 where the date columns (2018-11-08, ...) indicate the date the data was taken 
 (since this table articulates every single bus arrival/departure for a total 
-of 255k rows). The `arrival_id` is a unique identifier for each row, since 
+of 255k rows). Each date column will be populated with the number of seconds off of the 
+"scheduled" time provided to Google through its static database (negative times equate 
+to early arrivals). The `arrival_id` is a unique identifier for each row, since 
 `trip_id` and some other means of identification weren't completely unique.
