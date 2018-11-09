@@ -33,4 +33,19 @@ where the date columns (2018-11-08, ...) indicate the date the data was taken
 of 255k rows). Each date column will be populated with the number of seconds off of the 
 "scheduled" time provided to Google through its static database (negative times equate 
 to early arrivals). The `arrival_id` is a unique identifier for each row, since 
-`trip_id` and some other means of identification weren't completely unique.
+`trip_id` and some other means of identification weren't completely unique. Some of 
+these columns might not be completely necessary right now, however, we have decided
+to keep some of them in case they will be useful in the future.
+
+## Future Goals
+
+- Run the analyzer for a longer period of time so that more data is collected
+- Create statistics by route name, specific bus, specific areas of campus, etc.
+- Integrate Google Traffic data into database to better understand bus delays
+	- Understanding the Google Transit API to figure out what parts of the street
+		correspond to routes on certain buses
+	- Gathering data from another API and tying it in with this data
+- Creating a simple interface to allow users to interface with this data
+
+
+
