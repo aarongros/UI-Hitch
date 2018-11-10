@@ -10,9 +10,15 @@ pull realtime bus arrival data from CUMTD's API and store it in the SQL database
 Has been running on Colaboratory because of its hosted runtime feature, so
 stop_times.db isn't the most updated.
 
-## stop_times Database
+## stop_times.db SQLite3 Database
 
-In format:
+### Why SQLite3?
+
+No real reason, it was the first thing we learned existed and the database is 
+relatively small (255,689 rows in original database, will append columns to it).
+There are some limitations such as the lack of concurrency
+
+### Format
 
 |**trip_id**|**arrival_time**|**stop_id**|**stop_sequence**|**stop_headsign**|**arrival_id**|**2018-11-08**
 :-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:
@@ -28,7 +34,7 @@ In format:
 [@15.0.66064718@][3][1356532933096]/0__GN1_MF|09:06:40|FLJASCHER:3|75|nan|[@15.0.66064718@][3][1356532933096]/0__GN1_MF 09:06:40|-6
 [@15.0.66064718@][3][1356532933096]/0__GN1_MF|09:07:00|FLCRTS:3|76|nan|[@15.0.66064718@][3][1356532933096]/0__GN1_MF 09:07:00|-6
 
-where the date columns (2018-11-08, ...) indicate the date the data was taken 
+The date columns (2018-11-08, ...) indicate the date the data was taken 
 (since this table articulates every single bus arrival/departure for a total 
 of 255k rows). Each date column will be populated with the number of seconds off of the 
 "scheduled" time provided to Google through its static database (negative times equate 
