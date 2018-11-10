@@ -10,7 +10,7 @@ pull realtime bus arrival data from CUMTD's API and store it in the SQL database
 Has been running on Colaboratory because of its hosted runtime feature, so
 stop_times.db isn't the most updated.
 
-## stop_times.db SQLite3 Database
+## `stop_times.db` SQLite3 Database
 
 ### Why SQLite3?
 
@@ -20,30 +20,30 @@ There are some limitations such as the lack of concurrency
 
 ### Format
 
-|**trip_id**|**arrival_time**|**stop_id**|**stop_sequence**|**stop_headsign**|**arrival_id**|**2018-11-08**
-:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:
-[@15.0.66064718@][3][1356532933096]/0__GN1_MF|09:02:35|FRLN:1|64|nan|[@15.0.66064718@][3][1356532933096]/0__GN1_MF 09:02:35|-125
-[@15.0.66064718@][3][1356532933096]/0__GN1_MF|09:02:55|ADRSNFRLN:3|65|nan|[@15.0.66064718@][3][1356532933096]/0__GN1_MF 09:02:55|93
-[@15.0.66064718@][3][1356532933096]/0__GN1_MF|09:03:15|ADRSNMI:4|66|nan|[@15.0.66064718@][3][1356532933096]/0__GN1_MF 09:03:15|93
-[@15.0.66064718@][3][1356532933096]/0__GN1_MF|09:04:25|CTGRVPA:3|69|nan|[@15.0.66064718@][3][1356532933096]/0__GN1_MF 09:04:25|-6
-[@15.0.66064718@][3][1356532933096]/0__GN1_MF|09:04:45|FLCTGRV:4|70|nan|[@15.0.66064718@][3][1356532933096]/0__GN1_MF 09:04:45|-6
-[@15.0.66064718@][3][1356532933096]/0__GN1_MF|09:05:00|FLLNDN:3|71|nan|[@15.0.66064718@][3][1356532933096]/0__GN1_MF 09:05:00|-83
-[@15.0.66064718@][3][1356532933096]/0__GN1_MF|09:05:20|FLSUN:3|72|nan|[@15.0.66064718@][3][1356532933096]/0__GN1_MF 09:05:20|-83
-[@15.0.66064718@][3][1356532933096]/0__GN1_MF|09:06:00|FLPHILO:3|73|nan|[@15.0.66064718@][3][1356532933096]/0__GN1_MF 09:06:00|-83
-[@15.0.66064718@][3][1356532933096]/0__GN1_MF|09:06:15|FLADAMS:3|74|nan|[@15.0.66064718@][3][1356532933096]/0__GN1_MF 09:06:15|-6
-[@15.0.66064718@][3][1356532933096]/0__GN1_MF|09:06:40|FLJASCHER:3|75|nan|[@15.0.66064718@][3][1356532933096]/0__GN1_MF 09:06:40|-6
-[@15.0.66064718@][3][1356532933096]/0__GN1_MF|09:07:00|FLCRTS:3|76|nan|[@15.0.66064718@][3][1356532933096]/0__GN1_MF 09:07:00|-6
+#### Table: stop_times
 
-The date columns (2018-11-08, ...) indicate the date the data was taken 
+| **trip_id** | **arrival_time** | **stop_id** | **stop_sequence** | **route_id** | **2018-11-09** | **2018-11-10** |
+|---------------------------------------------------------|--------------|----------|---------------|----------------|------------|------------|
+| [@7.0.41950648@][1244056065453]/242__I4-3_UIF           | 25:26:39     | 1STARY:4 | 20            | ILLINI EVENING | 162        | null       |
+| [@7.0.41200832@][2][1249401318109]/4__I2_UIF            | 19:48:02     | 1STARY:4 | 20            | ILLINI         | 0          | null       |
+| [@7.0.41200832@][2][1238430887312]/205__I8/4S_UIMTH_SCH | 19:08:02     | 1STARY:4 | 20            | ILLINI         | -5         | null       |
+| [@7.0.41200832@][2][1249401318109]/1__I1UIMF            | 19:18:02     | 1STARY:4 | 20            | ILLINI         | 184        | null       |
+
+The date columns (2018-11-09, ...) indicate the date the data was taken 
 (since this table articulates every single bus arrival/departure for a total 
-of 255k rows). Each date column will be populated with the number of seconds off of the 
-"scheduled" time provided to Google through its static database (negative times equate 
-to early arrivals, null represents buses that didn't have any departure/arrival during
-that day- possible if some routes only run on weekends/altered schedules). The 
-`arrival_id` is a unique identifier for each row, since `trip_id` and some other means 
-of identification weren't completely unique. Some of these columns might not be 
-completely necessary right now, however, we have decided to keep some of them in case 
-they will be useful in the future.
+of 255k rows). Each date column will be populated with the number of seconds off of 
+the "scheduled" time provided to Google through its static database (negative times 
+equate to early arrivals, null represents buses that didn't have any departure/
+arrival during that day- possible if some routes only run on weekends/altered 
+schedules). Some of these columns might not be completely necessary right now, 
+however, we have decided to keep some of them in case they will be useful in the
+future.
+
+#### Table: unscheduled_stops
+
+There may be some unscheduled arrivals/departures that are given by the API, so to
+deal with those cases there is another table inside the database that stores any
+of these unscheduled stops. 
 
 ## Environment
 
