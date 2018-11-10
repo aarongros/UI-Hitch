@@ -302,9 +302,10 @@ def main():
                 time.sleep(60)
 
 
-global DEBUG_LEVEL
-DEBUG_LEVEL = 3
-                
-setup()
-main()
+if __name__ == "__main__":
+    global DEBUG_LEVEL
+    DEBUG_LEVEL = 3
+                    
+    setup()
+    main()
 
