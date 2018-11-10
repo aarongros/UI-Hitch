@@ -7,11 +7,9 @@ Original file is located at
     https://colab.research.google.com/drive/14Krwjwsa7aOzDDyhMeFuwxXwvJJxb4ro
 """
 
-### FOR USE IN GOOGLE COLAB ONLY ###
-# from google.colab import drive
-# drive.mount('/content/drive/')
+from google.colab import drive
+drive.mount('/content/drive/')
 # %cd "drive/My Drive/Fall 2018/UIHitch/"
-
 
 ### IMPORTS AND DEFINED CONSTANTS ###
 
@@ -35,6 +33,9 @@ DB_FILE = 'stop_times.db'
 # see debug() comments for levels
 # any value > 3 will print nothing
 DEBUG_LEVEL = 3
+TRIPS = None
+STOPS = None
+STOP_TIMES_ALL = None # csv's that will be read in later
 
 ### HELPER FUNCTIONS ###
 
@@ -48,9 +49,11 @@ def cumtd_request_url(methodname, other_args={}, version=VERSION, output=OUTPUT_
 
 # arrange into csv
 def generate_all_stops_csv(filename):
-    if filename in os.listdir(): return
+    if filename in os.listdir(): 
+        debug("INIT", "found '{}', continuing".format(filename), 1)
+        return
     
-    debug("INIT", "didn't find '{}', creating new".format(filename))
+    debug("INIT", "didn't find '{}', creating new".format(filename), 1)
     
     r = requests.get(cumtd_request_url("getstops"))
     json = r.json()
@@ -87,78 +90,69 @@ def generate_all_stops_csv(filename):
 	
 
 def name_to_stop_id(name):
-	stops = pd.read_csv('all_stops.csv')
-	if name in list(stops['stop_name']):
-		return stops[stops['stop_name'] == name].iloc[0]['stop_id']
-	elif name in list(stops['specific_stop_stop_name']):
-		return stops[stops['specific_stop_stop_name'] == name]\
+	if name in list(STOP_TIMES_ALL['stop_name']):
+		return STOP_TIMES_ALL[STOP_TIMES_ALL['stop_name'] == name].iloc[0]['stop_id']
+	elif name in list(STOP_TIMES_ALL['specific_stop_stop_name']):
+		return STOP_TIMES_ALL[STOP_TIMES_ALL['specific_stop_stop_name'] == name]\
             .iloc[0]['specific_stop_stop_id']
 	else:
 		return None
+    
+def trip_id_to_route_id(trip_id):
+    return TRIPS.loc[TRIPS['trip_id'].tolist().index(trip_id)]['route_id']
 	
 
-def cumtd_csv_to_sqlite(csv_file, sqlite_file):
+def cumtd_csv_to_sqlite(sqlite_file):
     conn = sqlite3.connect(sqlite_file)
     c = conn.cursor()
 
     # if the table/database exists, then don't create one
     c.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{}';".format(DB_NAMES[0]))
-    if c.fetchone() != 0: 
-        debug("INIT", "'{}' exists, moving on".format(DB_NAMES[0]), 1)
-        return
-    
-    debug("INIT", "creating table '{}' because didn't find one".format(DB_NAMES[0]), 1)
-    
-    columns = {
-        'trip_id': 'VARCHAR(60) NOT NULL', 
-        'arrival_time': 'VARCHAR(8) NOT NULL', 
-        'stop_id': 'VARCHAR(17) NOT NULL', 
-        'stop_sequence': 'INTEGER', 
-        'stop_headsign': 'VARCHAR(36) NOT NULL', 
-        'arrival_id': 'VARCHAR(63) NOT NULL PRIMARY KEY'
-    }
-    create_table_str = "CREATE TABLE IF NOT EXISTS {} (".format(DB_NAMES[0])
-    for colname, coltype in columns.items():
-        create_table_str += colname + " " + coltype + ","
-    create_table_str = create_table_str[:-1] + ");"
-    c.execute(create_table_str)
+    if c.fetchone()[0] != 0: 
+        debug("INIT", "'{}' table exists, moving on".format(DB_NAMES[0]), 1)
+    else:
+        debug("INIT", "creating table '{}' because didn't find one".format(DB_NAMES[0]), 1)
 
-    csv_df = pd.read_csv(csv_file)
-    for row in csv_df.iterrows():
-        cmd_str = "INSERT OR IGNORE INTO stop_times("+\
-            "trip_id,arrival_time,stop_id,stop_sequence,stop_headsign,arrival_id"+\
-        ") VALUES ("
-        trip_id = row[1]['trip_id']
-        arrival_time = row[1]['arrival_time']
-        stop_id = row[1]['stop_id']
-        stop_sequence = row[1]['stop_sequence']
-        stop_headsign = row[1]['stop_headsign']
-        arrival_id = trip_id + " " + arrival_time # unique arrival identifier
-        cmd_str += "'{}', '{}', '{}', {}, '{}', '{}')".format(
-            trip_id,arrival_time,stop_id,stop_sequence,stop_headsign,arrival_id)
-        c.execute(cmd_str)
+        create_table_str = "CREATE TABLE IF NOT EXISTS {} (".format(DB_NAMES[0])+\
+            'trip_id VARCHAR(60) NOT NULL,'+\
+            'arrival_time VARCHAR(8) NOT NULL,'+\
+            'stop_id VARCHAR(17) NOT NULL,'+\
+            'stop_sequence INTEGER,'+\
+            'route_id VARCHAR NOT NULL,'+\
+            "PRIMARY KEY('trip_id', 'arrival_time'));"
+        c.execute(create_table_str)
+
+        for row in STOPS.iterrows():
+            cmd_str = "INSERT OR IGNORE INTO stop_times("+\
+                "trip_id,arrival_time,stop_id,stop_sequence,route_id) VALUES ("
+            trip_id = row[1]['trip_id']
+            arrival_time = row[1]['arrival_time']
+            stop_id = row[1]['stop_id']
+            stop_sequence = row[1]['stop_sequence']
+            route_id = trip_id_to_route_id(row[1]['trip_id'])
+            arrival_id = trip_id + " " + arrival_time # unique arrival identifier
+            cmd_str += "'{}', '{}', '{}', {}, '{}')".format(
+                trip_id,arrival_time,stop_id,stop_sequence,route_id)
+            c.execute(cmd_str)
+        debug("INIT", "created table '{}'".format(DB_NAMES[0]), 1)
 
     # check if this table exists too
     c.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{}';".format(DB_NAMES[1]))
-    if c.fetchone() != 0: 
-        debug("INIT", "'{}' exists, moving on".format(DB_NAMES[1]), 1)
-        return
-    
-    debug("INIT", "creating table '{}' because didn't find one".format(DB_NAMES[1]), 1)
-    
-    columns = {
-        'trip_id': 'VARCHAR(60) NOT NULL',
-        'arrival_time': 'VARCHAR(8) NOT NULL',
-        'stop_id': 'VARCHAR(17) NOT NULL',
-        'stop_sequence': 'INTEGER',
-        'stop_headsign': 'VARCHAR(36) NOT NULL',
-        'delay': 'INTEGER'
-    }
-    create_table_str = "CREATE TABLE IF NOT EXISTS {} (".format(DB_NAMES[1])
-    for colname, coltype in columns.items():
-        create_table_str += colname + " " + coltype + ","
-    create_table_str = create_table_str[:-1] + ");"
-    c.execute(create_table_str)
+    if c.fetchone()[0] != 0: 
+        debug("INIT", "'{}' table exists, moving on".format(DB_NAMES[1]), 1)
+    else:
+        debug("INIT", "creating table '{}' because didn't find one".format(DB_NAMES[1]), 1)
+
+        create_table_str = "CREATE TABLE IF NOT EXISTS {} (".format(DB_NAMES[1])+\
+            'id INTEGER PRIMARY KEY,'+\
+            'trip_id VARCHAR(60) NOT NULL,'+\
+            'arrival_time VARCHAR(8) NOT NULL,'+\
+            'stop_id VARCHAR(17) NOT NULL,'+\
+            'stop_sequence INTEGER,'+\
+            'stop_headsign VARCHAR(36) NOT NULL,'+\
+            'delay INTEGER);'
+        c.execute(create_table_str)
+        debug("INIT", "created table '{}'".format(DB_NAMES[1]), 1)
 	
     conn.commit()
     conn.close()
@@ -187,8 +181,8 @@ def update_db(arrival_date, diff, trip_id, arrival_time, scheduled):
                 DB_NAMES[0], arrival_date))
             debug("UPDATE_DB","new column created: {}".format(arrival_date),1)
 
-        exec_str = "UPDATE {} SET '{}' = {} WHERE arrival_id LIKE '{}';".format(
-            DB_NAMES[0], arrival_date, diff, trip_id + " " + arrival_time)
+        exec_str = "UPDATE {} SET '{}' = {} WHERE trip_id LIKE '{}' AND arrival_time LIKE '{}';"\
+                .format(DB_NAMES[0], arrival_date, diff, trip_id, arrival_time)
         c.execute(exec_str)
     else:
         exec_str = "INSERT INTO {} ("+\
@@ -267,20 +261,31 @@ def analyze_all_stops(stops, minutes_between = 60, sleep_time = 3):
 ### MAIN WRAPPER FUNCTIONS ###
 
 def setup():
-	# initial creation of database 
-	cumtd_csv_to_sqlite('google_transit/stop_times.txt', 'stop_times.db')
-
+    # read in csv's
+    if 'google_transit' not in os.listdir():
+        debug("ERROR", "cannot find 'google_transit' folder- please download to proceed", 3)
+        return
+    
+    global TRIPS
+    TRIPS = pd.read_csv('google_transit/trips.txt')
+    global STOPS
+    STOPS = pd.read_csv('google_transit/stop_times.txt')
+    
 	# run once per folder
-	generate_all_stops_csv('all_stops.csv')
+    generate_all_stops_csv('all_stops.csv')
+    global STOP_TIMES_ALL
+    STOP_TIMES_ALL = pd.read_csv('all_stops.csv')
+    
+	# initial creation of database
+    cumtd_csv_to_sqlite('stop_times.db')
+    
 
 
-def main():    
+def main():
     minutes_between = 60
 
-    stop_times_all = pd.read_csv('google_transit/stop_times.txt')
-
-    all_stops = stop_times_all.loc[:]['stop_id']
-    stops = set([x[:-2] if re.match(".+:[0-9]{1}", x) else x for x in all_stops])
+    all_stops = STOPS.loc[:]['stop_id']
+    stops = set([x[:-2] if x != '' and re.match(".+:[0-9]{1}", x) else x for x in all_stops])
     stops = sorted(stops)
 
 
@@ -296,6 +301,10 @@ def main():
             while datetime.now().time().minute != 0:
                 time.sleep(60)
 
-if __name__ == "__main__":
-    setup()
-    main()
+
+global DEBUG_LEVEL
+DEBUG_LEVEL = 3
+                
+setup()
+main()
+
