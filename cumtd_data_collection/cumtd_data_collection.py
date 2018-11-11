@@ -39,6 +39,9 @@ STOP_TIMES_ALL = None # csv's that will be read in later
 
 ### HELPER FUNCTIONS ###
 
+class HourlyRequestLimitReached(Exception):
+    pass
+
 def cumtd_request_url(methodname, other_args={}, version=VERSION, output=OUTPUT_FORMAT, key=API_KEY):
 	rooturl = "https://developer.cumtd.com/api/{v}/{f}/".format(v=VERSION, f=OUTPUT_FORMAT)
 	url = rooturl + methodname + "?key={}".format(key)
@@ -198,7 +201,13 @@ def update_db(arrival_date, diff, trip_id, arrival_time, scheduled):
 
 def parse_store_cumtd_data(input, result):
     if 'departures' not in result:
-        debug("ERROR", "input: '{}' returned: {}".format(input, result['status']['msg']), 3)
+        if result['status']['code'] == 403:
+            # request limit per hour reached, don't request anymore
+            debug("ERROR", "request limit per hour reached, halting collection", 3)
+            raise HourlyRequestLimitReached("request limit per hour reached")
+        else:
+            debug("ERROR", "input: '{}' returned: {}".format(input, result['status']['msg']), 3)
+            return False
     else:
         departures_logged = 0
         for departure in result['departures']:
@@ -218,6 +227,7 @@ def parse_store_cumtd_data(input, result):
               "finished logging {}: {} departures logged".format(
                   result['rqst']['params']['stop_id'].upper(), 
                   departures_logged),1)
+        return True
 
 
 def has_stops(stop_id, minutes):
@@ -245,18 +255,20 @@ def has_stops(stop_id, minutes):
 
 def analyze_all_stops(stops, minutes_between = 60, sleep_time = 3):
     start = datetime.now()
-    stops_analyzed = 0
+    stops_requested = 0
+    continue_collecting = True
     for stop_id in stops:
-        if has_stops(stop_id, minutes_between):
+        if continue_collecting and has_stops(stop_id, minutes_between):
             try:
                 r = requests.get(cumtd_request_url("getdeparturesbystop", 
                     {'stop_id': stop_id, 'pt': minutes_between}))
-                parse_store_cumtd_data(stop_id, r.json())
-                stops_analyzed += 1
+                success = parse_store_cumtd_data(stop_id, r.json())
+                if success: stops_requested += 1
             except requests.exceptions.ConnectionError as e:
-                debug("ERROR", "ConnectionError: {}".format(datetime.now(), str(e)), 3)
-            time.sleep(sleep_time)
-    return (stops_analyzed, datetime.now() - start)
+                debug("ERROR", "ConnectionError: {}".format(str(e)), 3)
+            except HourlyRequestLimitReached as e:
+                continue_collecting = False
+    return (stops_requested, datetime.now() - start)
 
 ### MAIN WRAPPER FUNCTIONS ###
 
@@ -297,15 +309,15 @@ def main():
             stops_analyzed, time_taken), 3)
         
         if time_taken < timedelta(minutes=minutes_between):
-            debug("WAITING", "waiting until next round", 1)
+            time.sleep(60)
+            debug("WAITING", "waiting until next round", 3)
             while datetime.now().time().minute != 0:
                 time.sleep(60)
+        else:
+            debug("WAITING", "not waiting because last round took over {} minutes".format(minutes_between), 3)
 
-
-if __name__ == "__main__":
-    global DEBUG_LEVEL
-    DEBUG_LEVEL = 3
-                    
-    setup()
-    main()
-
+global DEBUG_LEVEL
+DEBUG_LEVEL = 3
+                
+setup()
+main()
