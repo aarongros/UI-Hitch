@@ -13,6 +13,7 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta
 import sqlite3
+import __builtin__
 import time, re, os
 
 from apikey import keys
@@ -36,6 +37,7 @@ STOP_TIMES_ALL = None # csv's that will be read in later
 ### HELPER FUNCTIONS ###
 
 class HourlyRequestLimitReached(Exception): pass
+class FileNotFoundException(Exception): pass
 
 def cumtd_request_url(methodname, other_args={}, version=VERSION, output=OUTPUT_FORMAT, key=API_KEY):
 	rooturl = "https://developer.cumtd.com/api/{v}/{f}/".format(v=VERSION, f=OUTPUT_FORMAT)
@@ -148,7 +150,7 @@ def cumtd_csv_to_sqlite(sqlite_file):
         create_table_str = "CREATE TABLE IF NOT EXISTS {} (".format(DB_NAMES[1])+\
             'arrival_date DATE NOT NULL,'+\
             'arrival_time VARCHAR(8) NOT NULL,'+\
-            'stop_id VARCHAR(17) NOT NULL,'+\
+#            'trip_id VARCHAR NOT NULL,'+\
             'delay INTEGER);'
         c.execute(create_table_str)
         debug("INIT", "created table '{}'".format(DB_NAMES[1]), 1)
@@ -185,9 +187,9 @@ def update_db(arrival_date, diff, trip_id, arrival_time, scheduled):
         c.execute(exec_str)
     else:
         exec_str = "INSERT INTO {} (".format(DB_NAMES[1])+\
-            "arrival_date, arrival_time,stop_id,delay"+\
-            ") VALUES ('{}','{}','{}',{});".format(arrival_date,\
-            arrival_time, stop_id, diff)
+            "arrival_date,arrival_time,trip_id,delay"+\
+            ") VALUES ('{}','{}',{});".format(arrival_date,\
+            arrival_time, diff)
         c.execute(exec_str)
         debug("UNSCHEDULED","unscheduled stop added",2)
         
@@ -288,8 +290,7 @@ def setup():
     # read in csv's
     if 'google_transit' not in os.listdir():
         debug("ERROR", "cannot find 'google_transit' folder", 3)
-        raise FileNotFoundException(os.errno.ENOENT, os.strerror(errno.ENOENT), 
-                                    'google_transit')
+        raise FileNotFoundException('google_transit')
     
     global TRIPS
     TRIPS = pd.read_csv('google_transit/trips.txt')
