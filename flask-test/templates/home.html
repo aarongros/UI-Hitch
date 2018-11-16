@@ -1,10 +1,73 @@
 {% extends "layout.html" %}
-
+{{ super() }}
 {% block body %}
 	<div class="jumotron text-center">
-		<h1>Welcome to FlaskApp</h1>
-		<p class="lead">
-			This application is built on Flask.
-		</p>
+		<h4>Your Daily Commute Retought</h4>
+		<section>
+			<div>
+				<header>
+					<h2>A Better Transit App</h2>
+					<p>No more missing the bus, arriving too early, or struggling to find the best route.</p>
+				</header>
+			</div>
+		</section>
+
+	<!-- Two -->
+		<section>
+			<section>
+				<div><img src="images/schedule.jpg" alt="" /></div><div>
+					<h2>Transit schedule</h2>
+					<p>Import of build your transit schedule so you'll never miss a bus.</p>
+				</div>
+			</section>
+			<section>
+				<div><img src="images/destination.jpg" alt="" /></div><div>
+					<h2>Destination Search</h2>
+					<p>Search either the name of the stop or the location you want to get to and we'll handle the rest.</p>
+				</div>
+			</section>
+		</section>
+
+	<!-- Three -->
+		<section>
+			<div>
+				<header>
+					<h2>What Makes Us So Great?</h2>
+					<p>We bring the best of both worlds. Easy of use and accuracy, and a whole bunch of useful features.</p>
+				</header>
+				<ul>
+					<li>
+						<h3>Calendar</h3>
+						<p>Build a transit schedule so you'll be notified whenever a bush you need to take is about to come.</p>
+					</li>
+					<li>
+						<h3>Tracking</h3>
+						<p>Track the current position of the bus so you'll know be able to better predict when it will arive.</p>
+					</li>
+					<li>
+						<h3>Searching</h3>
+						<p>You no longer have to memorize every stop. Just search where you want to go and we'll give you the best route.</p>
+					</li>
+					<li>
+						<h3>Accuracy</h3>
+						<p>We'll give you the most updated times of arival so you won't over or underestimate</p>
+					</li>
+				</ul>
+			</div>
+		</section>
+
+	<!-- CTA -->
+		<section>
+			<div>
+				<header>
+					<h2>Love What We Have to Offer?</h2>
+					<p>Consider signing up for an account with no ties attached</p>
+				</header>
+				<ul>
+					<li><a href="#">Sign Up</a></li>
+					<li><a href="about.html">Learn More</a></li>
+				</ul>
+			</div>
+		</section>
 	</div>
 {% endblock %}
