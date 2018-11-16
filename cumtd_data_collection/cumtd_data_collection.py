@@ -39,8 +39,7 @@ STOP_TIMES_ALL = None # csv's that will be read in later
 
 ### HELPER FUNCTIONS ###
 
-class HourlyRequestLimitReached(Exception):
-    pass
+class HourlyRequestLimitReached(Exception): pass
 
 def cumtd_request_url(methodname, other_args={}, version=VERSION, output=OUTPUT_FORMAT, key=API_KEY):
 	rooturl = "https://developer.cumtd.com/api/{v}/{f}/".format(v=VERSION, f=OUTPUT_FORMAT)
@@ -110,11 +109,13 @@ def cumtd_csv_to_sqlite(sqlite_file):
     c = conn.cursor()
 
     # if the table/database exists, then don't create one
-    c.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{}';".format(DB_NAMES[0]))
+    c.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{}';"\
+              .format(DB_NAMES[0]))
     if c.fetchone()[0] != 0: 
         debug("INIT", "'{}' table exists, moving on".format(DB_NAMES[0]), 1)
     else:
-        debug("INIT", "creating table '{}' because didn't find one".format(DB_NAMES[0]), 1)
+        debug("INIT", "creating table '{}' because didn't find one"\
+              .format(DB_NAMES[0]), 1)
 
         create_table_str = "CREATE TABLE IF NOT EXISTS {} (".format(DB_NAMES[0])+\
             'trip_id VARCHAR(60) NOT NULL,'+\
@@ -140,19 +141,18 @@ def cumtd_csv_to_sqlite(sqlite_file):
         debug("INIT", "created table '{}'".format(DB_NAMES[0]), 1)
 
     # check if this table exists too
-    c.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{}';".format(DB_NAMES[1]))
+    c.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{}';"\
+              .format(DB_NAMES[1]))
     if c.fetchone()[0] != 0: 
         debug("INIT", "'{}' table exists, moving on".format(DB_NAMES[1]), 1)
     else:
-        debug("INIT", "creating table '{}' because didn't find one".format(DB_NAMES[1]), 1)
+        debug("INIT", "creating table '{}' because didn't find one"\
+              .format(DB_NAMES[1]), 1)
 
         create_table_str = "CREATE TABLE IF NOT EXISTS {} (".format(DB_NAMES[1])+\
-            'id INTEGER PRIMARY KEY,'+\
-            'trip_id VARCHAR(60) NOT NULL,'+\
+            'arrival_date DATE NOT NULL,'+\
             'arrival_time VARCHAR(8) NOT NULL,'+\
             'stop_id VARCHAR(17) NOT NULL,'+\
-            'stop_sequence INTEGER,'+\
-            'stop_headsign VARCHAR(36) NOT NULL,'+\
             'delay INTEGER);'
         c.execute(create_table_str)
         debug("INIT", "created table '{}'".format(DB_NAMES[1]), 1)
@@ -188,10 +188,10 @@ def update_db(arrival_date, diff, trip_id, arrival_time, scheduled):
                 .format(DB_NAMES[0], arrival_date, diff, trip_id, arrival_time)
         c.execute(exec_str)
     else:
-        exec_str = "INSERT INTO {} ("+\
-            "trip_id,arrival_time,stop_id,stop_sequence,stop_headsign,delay"+\
-            ") VALUES ('{}','{}','{}',{},'{}','{}',{});".format(DB_NAMES[1],\
-            trip_id, arrival_time, stop_id, stop_sequence, stop_headsign, diff)
+        exec_str = "INSERT INTO {} (".format(DB_NAMES[1])+\
+            "arrival_date, arrival_time,stop_id,delay"+\
+            ") VALUES ('{}','{}','{}',{});".format(arrival_date,\
+            arrival_time, stop_id, diff)
         c.execute(exec_str)
         debug("UNSCHEDULED","unscheduled stop added",2)
         
@@ -205,13 +205,20 @@ def parse_store_cumtd_data(input, result):
             # request limit per hour reached, don't request anymore
             debug("ERROR", "request limit per hour reached, halting collection", 3)
             raise HourlyRequestLimitReached("request limit per hour reached")
+        elif result['status']['code'] == 404:
+            # bus doesn't exist (for that hour?) - ignore
+            debug("ERROR", "'{}' not found".format(input), 2)
+            return False
         else:
-            debug("ERROR", "input: '{}' returned: {}".format(input, result['status']['msg']), 3)
+            debug("ERROR", "input: '{}' returned: {}"\
+                  .format(input, result['status']['msg']), 3)
             return False
     else:
         departures_logged = 0
         for departure in result['departures']:
-            trip_id = departure['trip']['trip_id']
+            scheduled = departure['is_scheduled']
+            if scheduled: trip_id = departure['trip']['trip_id']
+            else: trip_id = None
             scheduled_time = datetime.strptime(
                 departure['scheduled'], "%Y-%m-%dT%H:%M:%S-06:00")
             diff = int((datetime.strptime(
@@ -221,12 +228,12 @@ def parse_store_cumtd_data(input, result):
             if scheduled_time.hour <= 6:
                 arrival_date = str(scheduled_time - timedelta(1,0))[:10]
                 arrival_time = str(int(arrival_time[:2]) + 24) + arrival_time[2:]
-            update_db(arrival_date, diff, trip_id, arrival_time, departure['is_scheduled'])
+            update_db(arrival_date, diff, trip_id, arrival_time,  scheduled)
             departures_logged += 1
         debug("STORE_DATA", 
               "finished logging {}: {} departures logged".format(
                   result['rqst']['params']['stop_id'].upper(), 
-                  departures_logged),1)
+                  departures_logged),2)    
         return True
 
 
@@ -240,30 +247,39 @@ def has_stops(stop_id, minutes):
         if other_time[0] > 23: other_time[0] -= 24
         now_time = datetime.now().time()
         if timedelta(minutes=0) < \
-                timedelta(hours=other_time[0], minutes=other_time[1], seconds=other_time[2]) \
-                - timedelta(hours=now_time.hour, minutes=now_time.minute, seconds=now_time.second) \
-                < timedelta(minutes=minutes):
+            timedelta(hours=other_time[0], 
+                      minutes=other_time[1], 
+                      seconds=other_time[2]) \
+            - timedelta(hours=now_time.hour, 
+                        minutes=now_time.minute, 
+                        seconds=now_time.second) \
+            < timedelta(minutes=minutes):
             conn.close()
             debug("HAS_STOPS", "{} has a stop within next {} minutes".format(
-					stop_id, minutes), 2)
+					stop_id, minutes), 1)
             return True
     debug("HAS_STOPS", "{} does not have a stop within next {} minutes".format(
             stop_id, minutes), 1)
     conn.close()
     return False
 
+def collect_available_stops(stops, minutes_between):
+    has_stops_list = list(filter(lambda x : has_stops(x, minutes_between), stops))
+    return has_stops_list
 
 def analyze_all_stops(stops, minutes_between = 60, sleep_time = 3):
     start = datetime.now()
     stops_requested = 0
     continue_collecting = True
     for stop_id in stops:
-        if continue_collecting and has_stops(stop_id, minutes_between):
+        if continue_collecting:
             try:
                 r = requests.get(cumtd_request_url("getdeparturesbystop", 
                     {'stop_id': stop_id, 'pt': minutes_between}))
                 success = parse_store_cumtd_data(stop_id, r.json())
-                if success: stops_requested += 1
+                if success: 
+                    stops_requested += 1
+                    time.sleep(sleep_time)
             except requests.exceptions.ConnectionError as e:
                 debug("ERROR", "ConnectionError: {}".format(str(e)), 3)
             except HourlyRequestLimitReached as e:
@@ -275,8 +291,9 @@ def analyze_all_stops(stops, minutes_between = 60, sleep_time = 3):
 def setup():
     # read in csv's
     if 'google_transit' not in os.listdir():
-        debug("ERROR", "cannot find 'google_transit' folder- please download to proceed", 3)
-        return
+        debug("ERROR", "cannot find 'google_transit' folder", 3)
+        raise FileNotFoundException(os.errno.ENOENT, os.strerror(errno.ENOENT), 
+                                    'google_transit')
     
     global TRIPS
     TRIPS = pd.read_csv('google_transit/trips.txt')
@@ -293,31 +310,43 @@ def setup():
     
 
 
-def main():
+def main(start_immediately = True):
     minutes_between = 60
 
     all_stops = STOPS.loc[:]['stop_id']
-    stops = set([x[:-2] if x != '' and re.match(".+:[0-9]{1}", x) else x for x in all_stops])
+    stops = set([x[:-2] if x != '' and re.match(".+:[0-9]{1}", x) else x 
+                 for x in all_stops])
     stops = sorted(stops)
 
+    delay_between_queries = 0
 
     # main loop
     while True:
-        debug("STARTING", "Starting data collection", 3)
-        stops_analyzed, time_taken = analyze_all_stops(stops, minutes_between, 0)
-        debug("FINISH", "Finished collecting data for {} stops in time: {}".format(
-            stops_analyzed, time_taken), 3)
-        
+        if start_immediately:
+            debug("STARTING", "Starting data collection", 3)
+            start = datetime.now()
+            available_stops = collect_available_stops(stops, minutes_between)
+            debug("COLLECTING", "{} stops have a departure in the next {} minutes: took: {}"\
+                    .format(len(available_stops), minutes_between, datetime.now() - start), 3)
+            stops_analyzed, time_taken = \
+                analyze_all_stops(available_stops, minutes_between, delay_between_queries)
+            debug("FINISHING", "Finished collecting data for {} stops in time: {}".format(
+                stops_analyzed, time_taken), 3)
+        else: 
+            start_immediately = True
+            time_taken = timedelta(seconds=0)
+
         if time_taken < timedelta(minutes=minutes_between):
+            debug("WAITING", "waiting until next hour", 3)
             time.sleep(60)
-            debug("WAITING", "waiting until next round", 3)
-            while datetime.now().time().minute != 0:
+            while datetime.now().time().minute > 1:
                 time.sleep(60)
         else:
-            debug("WAITING", "not waiting because last round took over {} minutes".format(minutes_between), 3)
+            debug("WAITING", "not waiting because last round took over {} minutes"\
+                  .format(minutes_between), 3)
 
 global DEBUG_LEVEL
 DEBUG_LEVEL = 3
-                
+
 setup()
-main()
+main(False)
