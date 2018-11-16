@@ -7,10 +7,6 @@ Original file is located at
     https://colab.research.google.com/drive/14Krwjwsa7aOzDDyhMeFuwxXwvJJxb4ro
 """
 
-from google.colab import drive
-drive.mount('/content/drive/')
-# %cd "drive/My Drive/Fall 2018/UIHitch/"
-
 ### IMPORTS AND DEFINED CONSTANTS ###
 
 import requests
@@ -344,9 +340,6 @@ def main(start_immediately = True):
         else:
             debug("WAITING", "not waiting because last round took over {} minutes"\
                   .format(minutes_between), 3)
-
-global DEBUG_LEVEL
-DEBUG_LEVEL = 3
 
 setup()
 main(False)
