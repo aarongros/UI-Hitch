@@ -290,7 +290,7 @@ def setup():
     # read in csv's
     if 'google_transit' not in os.listdir():
         debug("ERROR", "cannot find 'google_transit' folder", 3)
-        raise FileNotFoundException('google_transit')
+        raise FileNotFoundException("cannot find 'google_transit'")
     
     global TRIPS
     TRIPS = pd.read_csv('google_transit/trips.txt')
