@@ -1,12 +1,15 @@
 {% extends "layout.html" %}
 
 {% block body %}
-	<div class="jumotron text-center">
-		<h1>Log In</h1>
-		<p class="lead">
-			<button type="button" class="btn btn-outline-light" name="button">
+	<div class="jumotron text-center" style="width:100%; height:inherit; position:absolute; margin-bottom:55px;">
+		<div style="background-color:black; background: rgba(0,0,0,.45); color:white;display:inline-block; width:100%; height:40%; display:flex;">
+			<h1 style="margin:auto;">Log In</h1>
+		</div>
+		<div style="background-color:white; height:60%; width:100%;">
+			<button type="button" class="btn btn-outline-light" name="button" style="margin-top:5%">
 				<img src="/static/images/btn_google_signin_light_normal_web.png" alt="/static/images/btn_google_signin_light_focus_web.png">
 			</button>
-		</p>
+			<p class="lead">Don't have an account? <a href="/signup">Sign Up</a></p>
+		</div>
 	</div>
 {% endblock %}
