@@ -13,8 +13,7 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta
 import sqlite3
-#import __builtin__
-import time, re, os
+import time, re, os, sys
 
 from apikey import keys
 VERSION = "v2.2"
@@ -148,9 +147,9 @@ def cumtd_csv_to_sqlite(sqlite_file):
               .format(DB_NAMES[1]), 1)
 
         create_table_str = "CREATE TABLE IF NOT EXISTS {} (".format(DB_NAMES[1])+\
+            'route_id VARCHAR NOT NULL,'+\
             'arrival_date DATE NOT NULL,'+\
             'arrival_time VARCHAR(8) NOT NULL,'+\
-#            'trip_id VARCHAR NOT NULL,'+\
             'delay INTEGER);'
         c.execute(create_table_str)
         debug("INIT", "created table '{}'".format(DB_NAMES[1]), 1)
@@ -168,7 +167,7 @@ def debug(flag, msg, importance):
 
 ### LOGGING/UPDATING FUNCTIONS ###
 
-def update_db(arrival_date, diff, trip_id, arrival_time, scheduled):
+def update_db(arrival_date, diff, trip_id, arrival_time, scheduled, route_id):
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
 
@@ -188,7 +187,7 @@ def update_db(arrival_date, diff, trip_id, arrival_time, scheduled):
     else:
         exec_str = "INSERT INTO {} (".format(DB_NAMES[1])+\
             "arrival_date,arrival_time,trip_id,delay"+\
-            ") VALUES ('{}','{}',{});".format(arrival_date,\
+            ") VALUES ('{}','{}',{});".format(arrival_date, route_id,\
             arrival_time, diff)
         c.execute(exec_str)
         debug("UNSCHEDULED","unscheduled stop added",2)
@@ -215,8 +214,12 @@ def parse_store_cumtd_data(input, result):
         departures_logged = 0
         for departure in result['departures']:
             scheduled = departure['is_scheduled']
-            if scheduled: trip_id = departure['trip']['trip_id']
-            else: trip_id = None
+            if scheduled: 
+                trip_id = departure['trip']['trip_id']
+                route_id = None
+            else: 
+                route_id = result['route']['route_id']
+                trip_id = None
             scheduled_time = datetime.strptime(
                 departure['scheduled'], "%Y-%m-%dT%H:%M:%S-06:00")
             diff = int((datetime.strptime(
@@ -226,7 +229,7 @@ def parse_store_cumtd_data(input, result):
             if scheduled_time.hour <= 6:
                 arrival_date = str(scheduled_time - timedelta(1,0))[:10]
                 arrival_time = str(int(arrival_time[:2]) + 24) + arrival_time[2:]
-            update_db(arrival_date, diff, trip_id, arrival_time,  scheduled)
+            update_db(arrival_date, diff, trip_id, arrival_time, route_id, scheduled)
             departures_logged += 1
         debug("STORE_DATA", 
               "finished logging {}: {} departures logged".format(
@@ -290,7 +293,8 @@ def setup():
     # read in csv's
     if 'google_transit' not in os.listdir():
         debug("ERROR", "cannot find 'google_transit' folder", 3)
-        raise FileNotFoundException("cannot find 'google_transit'")
+        raise FileNotFoundException("cannot find 'google_transit'.\
+         you may need to cd into the 'cumtd_data_collection' folder")
     
     global TRIPS
     TRIPS = pd.read_csv('google_transit/trips.txt')
@@ -342,5 +346,6 @@ def main(start_immediately = True):
             debug("WAITING", "not waiting because last round took over {} minutes"\
                   .format(minutes_between), 3)
 
-setup()
-main(False)
+if __name__ == "__main__":
+    setup()
+    main(bool(sys.argv[1]) | False)

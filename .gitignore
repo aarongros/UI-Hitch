@@ -1,4 +1,4 @@
 flask-test/venv/
 apikey.py
 google_transit/
-.DS_Store
+*.DS_Store
