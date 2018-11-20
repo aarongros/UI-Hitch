@@ -13,7 +13,7 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta
 import sqlite3
-import time, re, os, sys
+import time, re, os
 
 from apikey import keys
 VERSION = "v2.2"
@@ -28,7 +28,7 @@ DB_FILE = 'stop_times.db'
 
 # see debug() comments for levels
 # any value > 3 will print nothing
-DEBUG_LEVEL = 3
+DEBUG_LEVEL = 2
 TRIPS = None
 STOPS = None
 STOP_TIMES_ALL = None # csv's that will be read in later
@@ -179,15 +179,15 @@ def update_db(arrival_date, diff, trip_id, arrival_time, scheduled, route_id):
         if new_row:
             c.execute("ALTER TABLE {} ADD '{}' INTEGER".format(
                 DB_NAMES[0], arrival_date))
-            debug("UPDATE_DB","new column created: {}".format(arrival_date),1)
+            debug("UPDATE_DB","new column created: {}".format(arrival_date),2)
 
         exec_str = "UPDATE {} SET '{}' = {} WHERE trip_id LIKE '{}' AND arrival_time LIKE '{}';"\
                 .format(DB_NAMES[0], arrival_date, diff, trip_id, arrival_time)
         c.execute(exec_str)
     else:
         exec_str = "INSERT INTO {} (".format(DB_NAMES[1])+\
-            "arrival_date,arrival_time,trip_id,delay"+\
-            ") VALUES ('{}','{}',{});".format(arrival_date, route_id,\
+            "route_id,arrival_date,arrival_time,delay"+\
+            ") VALUES ('{}','{}','{}',{});".format(route_id, arrival_date,\
             arrival_time, diff)
         c.execute(exec_str)
         debug("UNSCHEDULED","unscheduled stop added",2)
@@ -229,7 +229,7 @@ def parse_store_cumtd_data(input, result):
             if scheduled_time.hour <= 6:
                 arrival_date = str(scheduled_time - timedelta(1,0))[:10]
                 arrival_time = str(int(arrival_time[:2]) + 24) + arrival_time[2:]
-            update_db(arrival_date, diff, trip_id, arrival_time, route_id, scheduled)
+            update_db(arrival_date, diff, trip_id, arrival_time, scheduled, route_id)
             departures_logged += 1
         debug("STORE_DATA", 
               "finished logging {}: {} departures logged".format(
@@ -311,7 +311,7 @@ def setup():
     
 
 
-def main(start_immediately = True):
+def main():
     minutes_between = 60
 
     all_stops = STOPS.loc[:]['stop_id']
@@ -322,30 +322,16 @@ def main(start_immediately = True):
     delay_between_queries = 0
 
     # main loop
-    while True:
-        if start_immediately:
-            debug("STARTING", "Starting data collection", 3)
-            start = datetime.now()
-            available_stops = collect_available_stops(stops, minutes_between)
-            debug("COLLECTING", "{} stops have a departure in the next {} minutes: took: {}"\
-                    .format(len(available_stops), minutes_between, datetime.now() - start), 3)
-            stops_analyzed, time_taken = \
-                analyze_all_stops(available_stops, minutes_between, delay_between_queries)
-            debug("FINISHING", "Finished collecting data for {} stops in time: {}".format(
-                stops_analyzed, time_taken), 3)
-        else: 
-            start_immediately = True
-            time_taken = timedelta(seconds=0)
-
-        if time_taken < timedelta(minutes=minutes_between):
-            debug("WAITING", "waiting until next hour", 3)
-            time.sleep(60)
-            while datetime.now().time().minute > 1:
-                time.sleep(60)
-        else:
-            debug("WAITING", "not waiting because last round took over {} minutes"\
-                  .format(minutes_between), 3)
+    debug("STARTING", "Starting data collection", 3)
+    start = datetime.now()
+    available_stops = collect_available_stops(stops, minutes_between)
+    debug("COLLECTING", "{} stops have a departure in the next {} minutes: took: {}"\
+	.format(len(available_stops), minutes_between, datetime.now() - start), 3)
+    stops_analyzed, time_taken = \
+        analyze_all_stops(available_stops, minutes_between, delay_between_queries)
+    debug("FINISHING", "Finished collecting data for {} stops in time: {}".format(
+	    stops_analyzed, time_taken), 3)
 
 if __name__ == "__main__":
     setup()
-    main(bool(sys.argv[1]) | False)
+    main()
