@@ -1,5 +1,7 @@
 # CUMTD Data Collection
 
+### See [link](https://shawkagawa.com/cumtddatacollection) for live version of data
+
 ## Overview
 
 - Use [CUMTD's API](developer.cumtd.com) to pull general data about the buses
