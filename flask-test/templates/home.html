@@ -1,71 +1,92 @@
 {% extends "layout.html" %}
 {{ super() }}
 {% block body %}
-	<div class="jumotron text-center">
-		<h4>Your Daily Commute Retought</h4>
-		<section>
-			<div>
-				<header>
-					<h2>A Better Transit App</h2>
-					<p>No more missing the bus, arriving too early, or struggling to find the best route.</p>
-				</header>
-			</div>
-		</section>
-
-	<!-- Two -->
-		<section>
-			<section>
-				<div><img src="images/schedule.jpg" alt="" /></div><div>
-					<h2>Transit schedule</h2>
-					<p>Import of build your transit schedule so you'll never miss a bus.</p>
-				</div>
-			</section>
-			<section>
-				<div><img src="images/destination.jpg" alt="" /></div><div>
-					<h2>Destination Search</h2>
-					<p>Search either the name of the stop or the location you want to get to and we'll handle the rest.</p>
-				</div>
-			</section>
-		</section>
-
-	<!-- Three -->
-	<div class="container">
-		<header>
-			<h2>What Makes Us So Great?</h2>
-			<p>We bring the best of both worlds. Easy of use and accuracy, and a whole bunch of useful features.</p>
-		</header>
-		<ul>
-			<h4>Calendar</h4>
-			<li>
-				<p>Build a transit schedule so you'll be notified whenever a bush you need to take is about to come.</p>
-			</li>
-			<h4>Tracking</h4>
-			<li>
-				<p>Track the current position of the bus so you'll know be able to better predict when it will arive.</p>
-			</li>
-			<h4>Searching</h4>
-			<li>
-				<p>You no longer have to memorize every stop. Just search where you want to go and we'll give you the best route.</p>
-			</li>
-			<h4>Accuracy</h4>
-			<li>
-				<p>We'll give you the most updated times of arival so you won't over or underestimate</p>
-			</li>
-		</ul>
+<div class="jumotron text-center">
+	<div style="background-color:black; background: rgba(0,0,0,.45); color:white;display:inline-block; width:100%; height:40%; display:flex;">
+		<div style="margin:auto; margin-bottom:16%">
+			<img src="/static/images/modifiedbus.png" alt="bus" style="width:20%;">
+			<h1>UIUC Hitch</h1>
+			<h4>Your Daily Commute Retought</h4>
+		</div>
 	</div>
+	<section style="background-color:#2eb8b8;display:inline-block; width:100%;">
+		<div>
+			<header style="color:white; margin:50px 0px 50px 0px;">
+				<h2>A Better Transit App</h2>
+				<hr style="width:30%; border-width:2px">
+				<p>No more missing the bus, arriving too early, or struggling to find the best route.</p>
+			</header>
+		</div>
+	</section>
 
-	<!-- CTA -->
-		<section>
-			<div>
-				<header>
+	<section style="width:100%; margin:0; padding:0;color:white;display:inline-block;">
+		<div style="background-color:#47476b;display:inline-block; width:100%;">
+			<img src="/static/images/schedule.jpg" alt="Calendar" style="width:40%;float:left">
+			<div style="margin:150px 0px 150px 0px;">
+				<h2>Transit schedule</h2>
+				<p>Import of build your transit schedule so you'll never miss a bus.</p>
+			</div>
+		</div>
+		<div style="background-color:#33334d;display:inline-block;width:100%;">
+			<img src="static/images/destination.jpg" alt="Location" style="width:40%; float:right">
+			<div style="margin:150px 0px 150px 0px;">
+				<h2>Destination Search</h2>
+				<p>Search either the name of the stop or the location you want to get to and we'll handle the rest.</p>
+			</div>
+		</div>
+	</section>
+
+	<section style="background-color:#a3a3c2; color:white;display:inline-block; width:100%;">
+		<div class="container">
+			<header>
+				<h2 style="margin-top:50px;">What Makes Us So Great?</h2>
+				<hr style="width:50%; border-width:2px">
+				<p>We bring the best of both worlds. Easy of use and accuracy, and a whole bunch of useful features.</p>
+			</header>
+			<div class="row" style="margin:50px 0px 100px 0px;">
+				<div class="col" style="background-color:#9494b8;">
+					<div style="margin:10% 10% 10% 10%">
+						<h4>Calendar</h4>
+						<p>Build a transit schedule so you'll be notified whenever a bush you need to take is about to come.</p>
+					</div>
+				</div>
+				<div class="col" style="background-color:#8585ad;">
+					<div style="margin:10% 10% 10% 10%">
+						<h4>Tracking</h4>
+						<p>Track the current position of the bus so you'll know be able to better predict when it will arive.</p>
+					</div>
+				</div>
+				<div class="w-100"></div>
+				<div class="col" style="background-color:#8585ad;">
+					<div style="margin:10% 10% 10% 10%">
+						<h4>Searching</h4>
+						<p>You no longer have to memorize every stop. Just search where you want to go and we'll give you the best route.</p>
+					</div>
+				</div>
+				<div class="col" style="background-color:#7575a3;">
+					<div style="margin:10% 10% 10% 10%">
+						<h4>Accuracy</h4>
+						<p>We'll give you the most updated times of arival so you won't over or underestimate</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<div style="background-color:black; background: rgba(0,0,0,.45); color:white;display:inline-block; width:100%;margin:0; padding:0;">
+		<div class="container" style="margin:50px 0px 50px 0px; display:inline-block;">
+			<div class="row">
+				<div class="col">
 					<h2>Love What We Have to Offer?</h2>
 					<p>Consider signing up for an account with no ties attached</p>
-				</header>
-				<ul>
-					<li><a href="#">Sign Up</a></li>
-					<li><a href="about.html">Learn More</a></li>
-				</ul>
+				</div>
+				<div class="col">
+					<a href="/signup" class="btn btn-dark btn-lg active" role="button" aria-pressed="true" style="margin-bottom:20px">Sign Up</a>
+					<br>
+					<a href="/about" class="btn btn-light btn-lg active" role="button" aria-pressed="true">Learn More</a>
+				</div>
 			</div>
-		</section>
+		</div>
 	</div>
+</div>
 {% endblock %}
