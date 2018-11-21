@@ -40,7 +40,7 @@ if (exists("all_times")) {
 We can figure out if there is a difference in the delay of buses by time of the day. Maybe traffic at certain times of the day create more delays for the buses?
 
 ```{r time_of_day_plot, results='hold'}
-arrTimeDates <- sapply(all_times, function (time) {paste(date, time)})
+arrTimeDates <- sapply(all_times, function(time) {paste(date, time)})
 arrPOSIX <- as.POSIXct(arrTimeDates, format="%Y-%m-%d %H:%M:%S", origin="1960-01-01")
 cols <- rep(1, length(all_delays))
 cols[all_delays == 0] <- 2
@@ -70,7 +70,7 @@ $$\sigma_{delays} = `r round(sd(all_delays), 2)`$$
 $$n = `r length(all_delays)`$$
 
 ``` {r all_delays}
-histogram(~all_delays, breaks=500, main=paste0("Delay of all bus arrivals (collected on ", date, ")"), xlab="Delay of bus arrivals (seconds)")
+delays_hist <- hist(all_delays, freq=FALSE, breaks=500, main=paste0("Delay of all bus arrivals (collected on ", date, ")"), xlab="Delay of bus arrivals (seconds)")
 ```
 
 Since the number of 0's (buses that arrived exactly on time- $estimated - scheduled = 0$) is so high, here is a zoomed in version of the same graph.
@@ -79,10 +79,19 @@ Since the number of 0's (buses that arrived exactly on time- $estimated - schedu
 # 95% of all values within 1.96 SDs of mean
 xlim <- c(-1.96, 1.96) * sd(all_delays) + mean(all_delays)
 # find second highest peak and make that the highest
-percents <- hist(all_delays, plot=FALSE)
-ylim <- c(0, sort(percents$counts)[2])
-# color bar for 0 red
-histogram(~all_delays, breaks=500, main=paste0("Delay of all bus arrivals (zoomed in) (collected on ", date, ")"), xlab="Delay of bus arrivals (seconds)", xlim=xlim, ylim=ylim)
+ylim <- c(0, sort(delays_hist$density, decreasing=TRUE)[2])
+hist(all_delays,
+     freq=FALSE, 
+     breaks=500, 
+     main=paste0("Delay of all bus arrivals (zoomed in) (collected on ", date, ")"), 
+     xlab="Delay of bus arrivals (seconds)", 
+     xlim=xlim, 
+     ylim=ylim)
+```
+
+### Plotting by bus route
+
+There are a lot of bus routes, so maybe that is a confounder? Maybe some bus routes have higher rates of being late?
 
 ```{r delays_by_route, fig.height=8, fig.width=8}
 data <- all_delays
