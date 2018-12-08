@@ -1,13 +1,15 @@
 {% extends "layout.html" %}
 
 {% block body %}
-	<div class="jumotron text-center">
-		<h1>Scheduler</h1>
-		<p class="lead">
-			These are the best routes.
-		</p>
-		{% for stations in stations %}
-			<div class="container" style="border: 2px solid black; margin-bottom: 5px;">
+<div class="jumotron text-center">
+	<h1>Scheduler</h1>
+	<p class="lead">
+		These are the best routes.
+	</p>
+	{% for stations in stations %}
+	<form method="GET" action="/map">
+		<button type="submit">
+			<div class="container" style="margin-bottom: 5px; background-color:#61666b; color:white;">
 				<div class="row">
 					<div class="col-sm">
 						<h4>{{ stations.name }}</h4>
@@ -17,6 +19,8 @@
 					</div>
 				</div>
 			</div>
-		{% endfor %}
-	</div>
+		</button>
+	</form>
+	{% endfor %}
+</div>
 {% endblock %}
