@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block body %}
+	<div class="jumotron text-center">
+		<h1>Transit Searcher</h1>
+		<p class="lead">
+			Results.
+		</p>
+    {% for results in results %}
+    <form method="GET" action="/schedule">
+      <button type="submit">
+  			<div class="container" style="margin-bottom: 5px; color: white; background-color:#3c3c3c;">
+  				<div class="row">
+  					<div class="col-sm">
+  						<h4>{{ results.label }}</h4>
+  					</div>
+  					<div class="col-sm">
+  						<h6>Lon: {{ results.longitude }}</h6>
+              <br>
+              <h6>Lat: {{ results.latitude }}</h6>
+  					</div>
+  				</div>
+  			</div>
+      </button>
+    </form>
+		{% endfor %}
+	</div>
+{% endblock %}

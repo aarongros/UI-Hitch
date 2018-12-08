@@ -1,4 +1,6 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
+import requests, json, keys
+
 app = Flask(__name__)
 
 stations = [
@@ -36,6 +38,33 @@ def signup():
 def login():
 	return render_template('login.html')
 
+@app.route('/map')
+def map():
+	return render_template('map.html')
 
-if __name__ == "__main__":
-	app.run(debug = True)
+@app.route('/search')
+def Search():
+	return render_template('search.html')
+
+@app.route('/results', methods=['POST'])
+def results():
+	location = request.form['currentlocation']
+	destination = request.form['destination']
+	parameters = {'api_key': keys.openrouteservice_key, 'text': destination}
+	response = requests.get("https://api.openrouteservice.org/geocode/search", params = parameters)
+	json_obj = response.json()
+	coordinates = []
+	results = []
+	counter = 0
+	for elem in json_obj['features']:
+		results.append({})
+		results[counter]['label'] = elem['properties']['label']
+		coordinates.append(elem['geometry']['coordinates'])
+		results[counter]['longitude'] = coordinates[len(coordinates)-1][0]
+		results[counter]['latitude'] = coordinates[len(coordinates)-1][1]
+		counter += 1
+
+	return render_template('results.html', results = results)
+
+if __name__ == '__main__':
+	app.run(debug=True)

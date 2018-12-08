@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block body %}
+	<div class="jumotron text-center">
+		<h1>Transit Searcher</h1>
+		<p class="lead">
+			Search where you want to go.
+		</p>
+    <form method="POST" action="/results">
+      Current Location : <input type="text" name="currentlocation">
+      Destination : <input type="text" name="destination">
+      <input type="submit">
+    </form>
+	</div>
+{% endblock %}
