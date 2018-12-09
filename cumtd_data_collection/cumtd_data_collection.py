@@ -21,7 +21,7 @@ DB_FILE = 'stop_times.db'
 
 # see debug() comments for levels
 # any value > 3 will print nothing
-DEBUG_LEVEL = 2
+DEBUG_LEVEL = 2 
 TRIPS = None
 STOPS = None
 STOP_TIMES_ALL = None # csv's that will be read in later
@@ -156,7 +156,7 @@ def debug(flag, msg, importance):
     # 2 - unexpected but handled events
     # 1 - business as normal, everything else
     if importance >= DEBUG_LEVEL:
-        print("[{}] {}: {}\n".format(flag, datetime.now(), msg))
+        print("[{}] {}: {}".format(flag, datetime.now(), msg))
 
 ### LOGGING/UPDATING FUNCTIONS ###
 
@@ -198,11 +198,10 @@ def parse_store_cumtd_data(input, result):
         elif result['status']['code'] == 404:
             # bus doesn't exist (for that hour?) - ignore
             debug("ERROR", "'{}' not found".format(input), 2)
-            return False
         else:
             debug("ERROR", "input: '{}' returned: {}"\
                   .format(input, result['status']['msg']), 3)
-            return False
+        return (False, 0)
     else:
         departures_logged = 0
         for departure in result['departures']:
@@ -213,25 +212,27 @@ def parse_store_cumtd_data(input, result):
             else: 
                 route_id = result['route']['route_id']
                 trip_id = None
+            # fix 30 hr day into 24 hr day
             if int(departure['scheduled'][11:13]) > 23:
                 departure['scheduled'] = str(datetime.strptime(departure['scheduled'][:10], "%Y-%m-%d") + timedelta(days=1))[:10] + 'T' + str(int(departure['scheduled'][11:13]) - 24) + departure['scheduled'][13:]
                 departure['expected'] = str(datetime.strptime(departure['expected'][:10], "%Y-%m-%d") + timedelta(days=1))[:10] + 'T' + str(int(departure['expected'][1:13]) - 24) + departure['expected'][13:]
+            # remove colon in timezone
+            departure['scheduled'] = departure['scheduled'][:-3] + departure['scheduled'][-2:]
+            departure['expected'] = departure['expected'][:-3] + departure['expected'][-2:]
             scheduled_time = datetime.strptime(
                 departure['scheduled'], "%Y-%m-%dT%H:%M:%S%z")
             diff = int((datetime.strptime(
                 departure['expected'], "%Y-%m-%dT%H:%M:%S%z")
                 - scheduled_time).total_seconds())
             arrival_date, arrival_time = str(scheduled_time).split(' ')
-            if scheduled_time.hour <= 6:
-                arrival_date = str(scheduled_time - timedelta(1,0))[:10]
-                arrival_time = str(int(arrival_time[:2]) + 24) + arrival_time[2:]
-            update_db(arrival_date, diff, trip_id, arrival_time, scheduled, route_id)
+            debug("MANIPULATE_DATA", "scheduled: {}, expected: {}, diff: {}".format(scheduled_time, departure['expected'], diff), 1)
+            update_db(arrival_date, diff, trip_id, arrival_time[:-6], scheduled, route_id)
             departures_logged += 1
         debug("STORE_DATA", 
               "finished logging {}: {} departures logged".format(
                   result['rqst']['params']['stop_id'].upper(), 
                   departures_logged),1)    
-        return True
+        return (True, departures_logged)
 
 
 def has_stops(stop_id, minutes):
@@ -268,12 +269,14 @@ def analyze_all_stops(stops, minutes_between = 60, sleep_time = 3):
     start = datetime.now()
     stops_requested = 0
     continue_collecting = True
+    total_departures_logged = 0
     for stop_id in stops:
         if continue_collecting:
             try:
                 r = requests.get(cumtd_request_url("getdeparturesbystop", 
                     {'stop_id': stop_id, 'pt': minutes_between}))
-                success = parse_store_cumtd_data(stop_id, r.json())
+                success, departures_logged = parse_store_cumtd_data(stop_id, r.json())
+                total_departures_logged += departures_logged
                 if success: 
                     stops_requested += 1
                     time.sleep(sleep_time)
@@ -281,7 +284,7 @@ def analyze_all_stops(stops, minutes_between = 60, sleep_time = 3):
                 debug("ERROR", "ConnectionError: {}".format(str(e)), 3)
             except HourlyRequestLimitReached as e:
                 continue_collecting = False
-    return (stops_requested, datetime.now() - start)
+    return (stops_requested, total_departures_logged, datetime.now() - start)
 
 ### MAIN WRAPPER FUNCTIONS ###
 
@@ -323,10 +326,10 @@ def main():
     available_stops = collect_available_stops(stops, minutes_between)
     debug("COLLECTING", "{} stops have a departure in the next {} minutes: took: {}"\
 	.format(len(available_stops), minutes_between, datetime.now() - start), 3)
-    stops_analyzed, time_taken = \
+    stops_analyzed, departures_logged, time_taken = \
         analyze_all_stops(available_stops, minutes_between, delay_between_queries)
-    debug("FINISHING", "Finished collecting data for {} stops in time: {}".format(
-	    stops_analyzed, time_taken), 3)
+    debug("FINISHING", "Finished collecting data for {} stops ({} departures) in time: {}".format(
+	    stops_analyzed, departures_logged, time_taken), 3)
 
 if __name__ == "__main__":
     setup()

@@ -5,3 +5,4 @@ google_transit/
 .DS_Store
 .RData
 .Rhistory
+collect_data_from_server.sh
