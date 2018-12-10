@@ -86,9 +86,9 @@ class TripPlanner:
         origin_station_index = -1
         for i in range(len(stops)):
             # make sure bus stops at destination AFTER start location
-            if 'stop_id' in stops[i] and stops[i]['stop_point']['stop_id'] == start_stop_id:
+            if 'stop_id' in stops[i]['stop_point'] and stops[i]['stop_point']['stop_id'] == start_stop_id:
                 origin_station_index = i
-            if 'stop_id' in stops[i] and stops[i]['stop_point']['stop_id'] in stop_ids and i != -1:
+            if 'stop_id' in stops[i]['stop_point'] and stops[i]['stop_point']['stop_id'] in stop_ids and i != -1:
                 destination_departures = requests.get(
                     cumtd_request_url('getdeparturesbystop',
                         {'stop_id': stops[i]['stop_point']['stop_id'],
@@ -112,8 +112,7 @@ class TripPlanner:
             for departure in departures:
                 passes, dest_time, stop = self._trip_passes_dest(stop_id, departure['trip']['trip_id'])
                 if passes:
-                    if 'services' not in route or\
-                        (datetime.strptime(dest_time, self._time_format) - datetime.strptime(route['service']['dest_time'], self._time_format)).total_seconds() < 0:
+                    if (datetime.strptime(dest_time, self._time_format) - datetime.strptime(route['legs'][0]['walk']['end']['time'], self._time_format)).total_seconds() < 0:
                         start_as_datetime = datetime.strptime(departure['expected'], self._time_format)
                         end_as_datetime = datetime.strptime(dest_time, self._time_format)
                         travel_time = (end_as_datetime - start_as_datetime).total_seconds() / 60
@@ -133,14 +132,17 @@ class TripPlanner:
                 cumtd_request_url('getplannedtripsbylatlon',
                     {'origin_lat': lat, 'origin_lon': lon,
                     'destination_lat': self._dest[0], 'destination_lon': self._dest[1]})
-                ).json()['itineraries']
+                ).json()
+            pprint(final_walking_route)
+            final_walking_route = final_walking_route['itineraries']
             if len(final_walking_route) == 0:
                 continue
-            if 'services' in final_walking_route[0]['legs'][0].keys():
+            if 'services' in final_walking_route[0]['legs'][0]:
                 route['legs'].append({'time': final_walking_route[0]['travel_time'], 'service': final_walking_route[0]['legs'][0]['services']})
                 if len(final_walking_route[0]['legs']) > 1:
                     route['legs'].append({'time': final_walking_route[0]['travel_time'], 'walk': final_walking_route[0]['legs'][1]['walk']})
-            route['legs'].append({'time': final_walking_route[0]['travel_time'], 'walk': final_walking_route[0]['legs'][0]['walk']})
+            elif 'walk' in final_walking_route[0]['legs'][0]:
+                route['legs'].append({'time': final_walking_route[0]['travel_time'], 'walk': final_walking_route[0]['legs'][0]['walk']})
 
     def _haversine_distance(self, orig_lat, orig_lon, dest_lat, dest_lon):
         # formula from https://www.movable-type.co.uk/scripts/latlong.html
