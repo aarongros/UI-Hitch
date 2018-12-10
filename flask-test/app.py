@@ -1,6 +1,10 @@
 from flask import Flask, render_template, request
 import requests, json, keys
 
+result = []
+currentLatitude = 0
+currentLongitude = 0
+
 app = Flask(__name__)
 
 stations = [
@@ -26,11 +30,21 @@ def home():
 def about():
 	return render_template('about.html')
 
-@app.route('/schedule')
+@app.route('/schedule', methods=['POST'])
 def schedule():
-	# selection = request.form['selection']
-	# print(selection)
-	return render_template('schedule.html', stations=stations)
+	selection = request.form['selection']
+
+	print(selection)
+	for elem in result:
+		print(elem['label'])
+		print(result)
+		if elem['label'] == selection:
+			parameters = {'key': keys.cumtd_key, 'origin_lat': currentLatitude, 'origin_lon': currentLongitude, 'destination_lat': elem['latitude'], 'destination_lon': elem['longitude']}
+			response = requests.get("https://developer.cumtd.com/api/v2.2/json/getplannedtripsbylatlon", params = parameters)
+			data = response.json()
+			return render_template('schedule.html', stations=str(data))
+
+	return render_template('schedule.html')
 
 @app.route('/signup')
 def signup():
@@ -60,17 +74,16 @@ def results():
 	response = requests.get("https://api.openrouteservice.org/geocode/search", params = parameters)
 	json_obj = response.json()
 	coordinates = []
-	results = []
 	counter = 0
 	for elem in json_obj['features']:
-		results.append({})
-		results[counter]['label'] = elem['properties']['label']
+		result.append({})
+		result[counter]['label'] = elem['properties']['label']
 		coordinates.append(elem['geometry']['coordinates'])
-		results[counter]['longitude'] = coordinates[len(coordinates)-1][0]
-		results[counter]['latitude'] = coordinates[len(coordinates)-1][1]
+		result[counter]['longitude'] = coordinates[len(coordinates)-1][0]
+		result[counter]['latitude'] = coordinates[len(coordinates)-1][1]
 		counter += 1
 
-	return render_template('results.html', results = results)
+	return render_template('results.html', results = result)
 
 if __name__ == '__main__':
 	app.run(debug=True)
