@@ -28,8 +28,8 @@ def about():
 
 @app.route('/schedule')
 def schedule():
-	destination = request.form['loc']
-	print(destination)
+	# selection = request.form['selection']
+	# print(selection)
 	return render_template('schedule.html', stations=stations)
 
 @app.route('/signup')

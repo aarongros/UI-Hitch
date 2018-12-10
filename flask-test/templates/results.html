@@ -15,11 +15,12 @@
   					</div>
   					<div class="col-sm">
   						<h6>Lon: {{ results.longitude }}</h6>
-              <br> 
+              <br>
               <h6>Lat: {{ results.latitude }}</h6>
   					</div>
   				</div>
-					<input type="submit" name="" value={{ results.label }}>
+					Enter Name: <input type="text" name="selection">
+			    <input type="submit" value="Select">
   			</div>
     </form>
 		{% endfor %}
