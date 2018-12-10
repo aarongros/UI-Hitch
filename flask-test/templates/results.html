@@ -8,7 +8,6 @@
 		</p>
     {% for results in results %}
     <form method="GET" action="/schedule">
-      <button type="submit">
   			<div class="container" style="margin-bottom: 5px; color: white; background-color:#3c3c3c;">
   				<div class="row">
   					<div class="col-sm">
@@ -16,12 +15,12 @@
   					</div>
   					<div class="col-sm">
   						<h6>Lon: {{ results.longitude }}</h6>
-              <br>
+              <br> 
               <h6>Lat: {{ results.latitude }}</h6>
   					</div>
   				</div>
+					<input type="submit" name="" value={{ results.label }}>
   			</div>
-      </button>
     </form>
 		{% endfor %}
 	</div>

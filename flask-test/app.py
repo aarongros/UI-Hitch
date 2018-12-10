@@ -28,6 +28,8 @@ def about():
 
 @app.route('/schedule')
 def schedule():
+	destination = request.form['loc']
+	print(destination)
 	return render_template('schedule.html', stations=stations)
 
 @app.route('/signup')
@@ -48,7 +50,6 @@ def Search():
 
 @app.route('/results', methods=['POST'])
 def results():
-	location = request.form['currentlocation']
 	destination = request.form['destination']
 	parameters = {'access_key': keys.ipstack_key}
 	response = requests.get("http://api.ipstack.com/check", params = parameters)
@@ -58,7 +59,6 @@ def results():
 	parameters = {'api_key': keys.openrouteservice_key, 'text': destination, 'focus.point.lat': currentLatitude, 'focus.point.lon': currentLongitude, 'boundary.country': 'US'}
 	response = requests.get("https://api.openrouteservice.org/geocode/search", params = parameters)
 	json_obj = response.json()
-	print(response.url)
 	coordinates = []
 	results = []
 	counter = 0
