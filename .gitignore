@@ -6,3 +6,5 @@ google_transit/
 .RData
 .Rhistory
 collect_data_from_server.sh
+__pycache__/
+/*.pyc
