@@ -89,6 +89,9 @@ class TripPlanner:
                         }
                         break
                 duration = transit['arrival_time']['value'] - transit['departure_time']['value']
+                if duration < 0:
+                    # TODO: do something?
+                    pass
                 leg['duration']['value'] = duration
                 leg['duration']['text'] = "{0:.2f} mins".format(duration / 60)
         # end time doesn't change UNLESS last leg is bus
@@ -112,10 +115,6 @@ class TripPlanner:
                     return row[0]
         raise Exception("stop {} not found!".format(stop_name))
 
-    def _text_to_seconds(self, text):
-        return float(text.split(" min")[0])
-
-
     def _find_inconsistencies(self, trip):
         times = [trip['legs'][0]['departure_time']['value']]
         for leg in trip['legs'][0]['steps']: # is this okay?
@@ -124,8 +123,7 @@ class TripPlanner:
             elif leg['travel_mode'] == 'TRANSIT':
                 transit = leg['transit_details']
                 if transit['departure_time']['value'] < times[-1]:
-                    print("filtered out this trip, bus came early?")
-                    pprint.pprint(trip)
+                    print("bus came early and ruined trip. finding new trip to here")
                     return False
                 else:
                     times.append(transit['arrival_time']['value'])
@@ -135,8 +133,6 @@ class TripPlanner:
     def _find_travel_time(self, trip):
         total_travel_time = 0
         for leg in trip['legs'][0]['steps']:
-            # both TRANSIT and WALKING have same 'duration' object
-            # leg['duration']['text'] is in format: "12 mins" --> convert to seconds
             total_travel_time += leg['duration']['value']
         trip['travel_time'] = {'value': total_travel_time,
                                'text': "{0:.2f} mins".format(total_travel_time / 60)}
@@ -146,8 +142,10 @@ class TripPlanner:
                                'text': "{0:.2f} mins".format(wait_time / 60)}
 
     def _sort_trips_by_time(self):
-        sorted_by_wait = sorted(self._trips, key=lambda x: x['wait_time'])
-        self._sorted_trips = sorted(sorted_by_wait, key=lambda x: x['travel_time'])
+        self._sorted_trips = sorted(self._trips, key=lambda x: self._calculate_weighted_score(x))
+       
+    def _calculate_weighted_score(self, trip):
+        return 0.8 * trip['travel_time']['value'] + 0.2 * trip['wait_time']['value'] 
 
     def _strptime(self, time):
         # parse times, should all be in same format
@@ -157,7 +155,7 @@ class TripPlanner:
 
     def _get_trip(self):
         gmaps = googlemaps.Client(key=keys['google'])
-        directions_result = gmaps.directions(self._orig, self._dest, mode="transit", departure_time=datetime.now())
+        directions_result = gmaps.directions(self._orig, self._dest, mode="transit", departure_time=datetime.now(), alternatives=True)
         return directions_result
     
     def _get_departures_by_stop(self, stop_id):
