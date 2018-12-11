@@ -87,14 +87,13 @@ class TripPlanner:
 
 
     def _to_stop_id(self, stop_name):
-        print(stop_name)
+        stop_name = stop_name.replace(" and ", " & ")
         with open('google_transit/stops.txt', 'rt') as f:
             csv_reader = csv.reader(f)
             for row in csv_reader:
                 if row[2] == stop_name:
                     return row[0]
-        return None
-
+        raise Exception("stop {} not found!".format(stop_name))
 
     def _text_to_seconds(self, text):
         return int(text.split(" min")[0])
@@ -143,11 +142,14 @@ class TripPlanner:
         # see https://developer.cumtd.com/documentation/v2.2/method/getplannedtripsbylatlon/
         r = requests.get(cumtd_request_url("getdeparturesbystop",
             {"stop_id": stop_id}))
+        result_json = r.json()
+        if result_json['status']['code'] != 200:
+            raise Exception("error calling CUMTD API: {}".format(result_json['status']['msg']))
         return r.json()
 
 def main():
     start = "Siebel Center for Computer Science"
-    end = "Illini Union"
+    end = "The University of Illinois - Memorial Stadium"
     trip_planner = TripPlanner(start, end)
     trip_planner.search()
     pprint(trip_planner.get_old_directions())
