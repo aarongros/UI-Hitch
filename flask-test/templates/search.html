@@ -1,25 +1,11 @@
-{% extends "layout.html" %}
+{% extends "default.html" %}
 
 {% block body %}
-<!-- <div class="jumotron text-center">
-  <h1>Transit Searcher</h1>
-  <p class="lead">
-    Search where you want to go.
-  </p>
-  <form method="POST" action="/results">
-    Current Location : <input type="text" name="currentlocation"> 
-    Destination: <input type="text" name="destination">
-    <input type="submit" value="Search">
-  </form>
-</div> -->
-
-<body>
   <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBSppCer6mDhufiol_rUIbYDaTmX9cpWfI&libraries=places"></script>
   <script type="text/javascript">
       google.maps.event.addDomListener(window, 'load', function () {
           var places = new google.maps.places.Autocomplete(document.getElementById('destination'))})
   </script>
-  
   <div class="jumotron text-center">
   <h1>Transit Searcher</h1>
   <p class="lead">
@@ -32,5 +18,4 @@
       <input type="submit" value="Search">
   </form>
 </div>
-  </body>
 {% endblock %}

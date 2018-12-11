@@ -47,13 +47,14 @@ def schedule():
 	tripPlanner.search()
 	
 	data = tripPlanner.get_directions()
-	times = []
+	arrival_times = []
+	test = {'time': "32:26"}
 	for itinerary in data:
 		try:
-			times.append(itinerary['legs'][0]['arrival_time']['text'])
+			arrival_times.append(itinerary['legs'][0]['arrival_time']['text'])
 		except:
 			continue
-	return render_template('schedule.html', times=times)
+	return render_template('schedule.html', arrival_times=arrival_times, test=test)
 
 @app.route('/signup')
 def signup():

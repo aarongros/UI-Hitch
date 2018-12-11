@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "default.html" %}
 
 {% block body %}
 <div class="jumotron text-center">
@@ -6,11 +6,12 @@
 	<p class="lead">
 		These are the best routes. Select the one you want to take.
 	</p>
-	{% for time in times %}
+	{% for time in arrival_times %}
 	<form method="POST" action="/map">
 		<button type="submit">
 			<div class="container" style="margin-bottom: 5px; background-color:#61666b; color:white;">
 				<h4>Arrival Time: {{ time }}</h4>
+				<h6>{{ test['time'] }}</h6>
 				<input type="hidden" name="selection" value={{time}}>
 			</div>
 		</button>
