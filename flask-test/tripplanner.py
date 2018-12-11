@@ -48,6 +48,7 @@ class TripPlanner:
     def _edit_trip(self, trip):
         # edit all services to have accurate time(don't edit walk)
         for leg in trip['legs'][0]['steps']: # is this okay?
+            checkpoints = [trip['legs'][0]['departure_time']['value']]
             if leg['travel_mode'] == 'TRANSIT':
                 transit = leg['transit_details']
                 
@@ -56,44 +57,64 @@ class TripPlanner:
                 stop_loc = transit['departure_stop']['location']
                 begin_stop_id = self._to_stop_id(stop_name, stop_loc['lat'], stop_loc['lng'])
                 departures = self._get_departures_by_stop(begin_stop_id)
-                for departure in departures['departures']:
+                valid = False
+                for departure in sorted(departures['departures'], key=lambda x: self._strptime(x['expected']).timestamp()):
                     if departure['route']['route_id'].lower() == transit['line']['name'].lower():
                         real_time = departure['expected']
                         real_time_full = self._strptime(real_time)
                         real_time_12hr = datetime.strftime(real_time_full, "%I:%M:%S%p")
                         real_time_int = int(real_time_full.timestamp())
+                        
+                        if real_time_int < checkpoints[-1]: continue
+                        else: checkpoints.append(real_time_int)
+
                         # put them back into the schedule
                         transit['departure_time'] = {
                             'text': real_time_12hr,
                             'time_zone': 'America/Chicago',
                             'value': real_time_int
                         }
+                        valid = True
                         break
+                if not valid:
+                    # do something
+                    pass 
 
                 # end transit leg
                 stop_name = transit['arrival_stop']['name']
                 stop_loc = transit['arrival_stop']['location']
                 end_stop_id = self._to_stop_id(stop_name, stop_loc['lat'], stop_loc['lng'])
-                departures = self._get_departures_by_stop(end_stop_id)['departures']
-                for departure in departures:
+                departures = self._get_departures_by_stop(end_stop_id)
+                valid = False
+                for departure in sorted(departures['departures'], key=lambda x: self._strptime(x['expected']).timestamp()):
                     if departure['route']['route_id'].lower() == transit['line']['name'].lower():
                         real_time = departure['expected']
                         real_time_full = self._strptime(real_time)
-                        real_time_12hr = datetime.strftime(real_time_full, "%I:%M%p")
+                        real_time_12hr = datetime.strftime(real_time_full, "%I:%M:%S%p")
                         real_time_int = int(real_time_full.timestamp())
+                        
+                        if real_time_int < checkpoints[-1]: continue
+                        else: checkpoints.append(real_time_int)
+
                         # put them back into the schedule
                         transit['arrival_time'] = {
                             'text': real_time_12hr,
                             'time_zone': 'America/Chicago',
                             'value': real_time_int
                         }
+                        valid = True
                         break
-                duration = transit['arrival_time']['value'] - transit['departure_time']['value']
-                if duration < 0:
-                    # TODO: do something?
+                if not valid:
+                    # do something
                     pass
+
+                duration = transit['arrival_time']['value'] - transit['departure_time']['value']
                 leg['duration']['value'] = duration
                 leg['duration']['text'] = "{0:.2f} mins".format(duration / 60)
+
+            elif leg['travel_mode'] == 'WALKING':
+                checkpoints.append(leg['duration']['value'] + checkpoints[-1])
+
         # end time doesn't change UNLESS last leg is bus
         # maybe do another call to API to figure out whether person can walk from bus endpoint
         # to destination?
@@ -177,7 +198,7 @@ def main():
     trip_planner = TripPlanner(start, end)
     trip_planner.search()
     trip_planner.pprint_to_file(trip_planner.get_old_directions(), "old_directions.txt")
-    pprint.pprint(trip_planner.get_directions())
+    trip_planner.pprint_to_file(trip_planner.get_directions(), "new_directions.txt")
 
 if __name__ == "__main__":
     sys.exit(main())
