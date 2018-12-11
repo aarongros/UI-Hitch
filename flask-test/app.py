@@ -31,15 +31,17 @@ def about():
 
 @app.route('/schedule', methods=['POST'])
 def schedule():
-	destination = request.form['destination']
-	flash(destination)
+	try:
+		destination = request.form['destination']
+	except:
+		print("DESTINATION FAILED!!!!")
 
 	parameters = {'access_key': keys.ipstack_key}
 	response = requests.get("http://api.ipstack.com/check", params = parameters)
 	currentLocation = response.json()
 	currentLongitude = currentLocation['longitude']
 	currentLatitude = currentLocation['latitude']
-	origin_value = currentLatitude + "," + currentLongitude
+	origin_value = str(currentLatitude) + "," + str(currentLongitude)
 	
 	tripPlanner = TripPlanner(origin_value, destination)
 	tripPlanner.search()
@@ -47,9 +49,11 @@ def schedule():
 	data = tripPlanner.get_directions()
 	times = []
 	for itinerary in data:
-		print(itinerary['travel_time'])
-		times.append(itinerary['travel_time'])
-	return render_template('schedule.html', times=times, data=data)
+		try:
+			times.append(itinerary['legs'][0]['arrival_time']['text'])
+		except:
+			continue
+	return render_template('schedule.html', times=times)
 
 @app.route('/signup')
 def signup():

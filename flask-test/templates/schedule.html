@@ -10,12 +10,11 @@
 	<form method="POST" action="/map">
 		<button type="submit">
 			<div class="container" style="margin-bottom: 5px; background-color:#61666b; color:white;">
-				<h4>Total Transit Time: {{ time }}</h4>
+				<h4>Arrival Time: {{ time }}</h4>
 				<input type="hidden" name="selection" value={{time}}>
 			</div>
 		</button>
 	</form>
 	{% endfor %}
-	<div>{{data}}</div>
 </div>
 {% endblock %}

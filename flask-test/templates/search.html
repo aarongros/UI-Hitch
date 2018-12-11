@@ -20,6 +20,7 @@
           var places = new google.maps.places.Autocomplete(document.getElementById('destination'))})
   </script>
   
+  <div class="jumotron text-center">
   <h1>Transit Searcher</h1>
   <p class="lead">
     Search where you want to go.
@@ -27,8 +28,9 @@
   <div></div>
   <form method="POST" action="/schedule">
       <span>Location:</span>
-      <input type="text" id="destination" style="width: 250px" placeholder="Enter a location" />
+      <input type="text" id="destination" name="destination" style="width: 250px" placeholder="Enter a location" />
       <input type="submit" value="Search">
   </form>
+</div>
   </body>
 {% endblock %}
