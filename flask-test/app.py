@@ -32,6 +32,7 @@ def about():
 @app.route('/schedule', methods=['POST'])
 def schedule():
 	destination = request.form['destination']
+	flash(destination)
 
 	parameters = {'access_key': keys.ipstack_key}
 	response = requests.get("http://api.ipstack.com/check", params = parameters)
@@ -71,6 +72,7 @@ def Search():
 @app.route('/results', methods=['POST'])
 def results():
 	destination = request.form['destination']
+	
 	parameters = {'access_key': keys.ipstack_key}
 	response = requests.get("http://api.ipstack.com/check", params = parameters)
 	currentLocation = response.json()
