@@ -6,22 +6,16 @@
 	<p class="lead">
 		These are the best routes.
 	</p>
-	<!-- {% for stations in stations %}
-	<form method="GET" action="/map">
+	{% for time in times %}
+	<form method="POST" action="/map">
 		<button type="submit">
 			<div class="container" style="margin-bottom: 5px; background-color:#61666b; color:white;">
-				<div class="row">
-					<div class="col-sm">
-						<h4>{{ stations.name }}</h4>
-					</div>
-					<div class="col-sm">
-						<h3>{{ stations.time }} Min</h3>
-					</div>
-				</div>
+				<h4>{{ time }}</h4>
+				Enter Time: <input type="text" name="selection">
+				<input type="submit" value="Select">
 			</div>
 		</button>
 	</form>
-	{% endfor %} -->
-	<p>{{ stations }}
+	{% endfor %}
 </div>
 {% endblock %}

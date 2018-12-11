@@ -14,11 +14,12 @@
   						<h4>{{ result.label }}</h4>
   					</div>
   					<div class="col-sm">
-							<h6 name="longitude">Lon: {{ result.longitude }}</h6>
-              <h6 name="latitude">Lat: {{ result.latitude }}</h6>
+							<!-- <h6 name="longitude">Lon: {{ result.longitude }}</h6>
+							<h6 name="latitude">Lat: {{ result.latitude }}</h6> -->
+							<input type="hidden" name="longitude" value={{result.longitude}} readonly>
+							<input type="hidden" name="latitude" value={{result.latitude}} readonly>
   					</div>
   				</div>
-					Enter Name: <input type="text" name="selection">
 			    <input type="submit" value="Select">
   			</div>
     </form>

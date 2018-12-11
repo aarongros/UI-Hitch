@@ -37,12 +37,12 @@ for elem in json_obj['features']:
 parameters = {'key': keys.cumtd_key, 'origin_lat': currentLatitude, 'origin_lon': currentLongitude, 'destination_lat': results[0]['latitude'], 'destination_lon': results[0]['longitude']}
 response = requests.get("https://developer.cumtd.com/api/v2.2/json/getplannedtripsbylatlon", params = parameters)
 data = response.json()
-
+print(str(data))
 routes = []
 for itinerarie in data['itineraries']:
 
     for elem in itinerarie["legs"]:
-        if elem['type'] = "Service":
+        if elem['type'] == "Service":
             shapeid = []
             beginstopid = []
             endstopid = []
