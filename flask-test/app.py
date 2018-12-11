@@ -31,18 +31,16 @@ def about():
 
 @app.route('/schedule', methods=['POST'])
 def schedule():
-	dest_latitude = request.form['latitude']
-	dest_longitude = request.form['longitude']
+	destination = request.form['destination']
 
 	parameters = {'access_key': keys.ipstack_key}
 	response = requests.get("http://api.ipstack.com/check", params = parameters)
 	currentLocation = response.json()
 	currentLongitude = currentLocation['longitude']
 	currentLatitude = currentLocation['latitude']
-	parameters = {'key': keys.cumtd_key, 'origin_lat': currentLatitude, 'origin_lon': currentLongitude, 'destination_lat': dest_latitude, 'destination_lon': dest_longitude}
-	response = requests.get("https://developer.cumtd.com/api/v2.2/json/getplannedtripsbylatlon", params = parameters)
+	origin_value = currentLatitude + "," + currentLongitude
 	
-	tripPlanner = TripPlanner(currentLatitude, currentLongitude, dest_latitude, dest_longitude, 1, 20)
+	tripPlanner = TripPlanner(origin_value, destination)
 	tripPlanner.search()
 	
 	data = tripPlanner.get_directions()
