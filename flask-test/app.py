@@ -1,9 +1,7 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, flash
 import requests, json, keys
 
 result = []
-currentLatitude = 0
-currentLongitude = 0
 
 app = Flask(__name__)
 
@@ -21,7 +19,7 @@ stations = [
 		'time': '1'
 	}
 ]
-
+ 
 @app.route('/')
 def home():
 	return render_template('home.html')
@@ -32,19 +30,23 @@ def about():
 
 @app.route('/schedule', methods=['POST'])
 def schedule():
-	selection = request.form['selection']
+	dest_latitude = request.form['latitude']
+	dest_longitude = request.form['longitude']
 
-	print(selection)
-	for elem in result:
-		print(elem['label'])
-		print(result)
-		if elem['label'] == selection:
-			parameters = {'key': keys.cumtd_key, 'origin_lat': currentLatitude, 'origin_lon': currentLongitude, 'destination_lat': elem['latitude'], 'destination_lon': elem['longitude']}
-			response = requests.get("https://developer.cumtd.com/api/v2.2/json/getplannedtripsbylatlon", params = parameters)
-			data = response.json()
-			return render_template('schedule.html', stations=str(data))
+	parameters = {'access_key': keys.ipstack_key}
+	response = requests.get("http://api.ipstack.com/check", params = parameters)
+	currentLocation = response.json()
+	currentLongitude = currentLocation['longitude']
+	currentLatitude = currentLocation['latitude']
 
-	return render_template('schedule.html')
+	parameters = {'key': keys.cumtd_key, 'origin_lat': currentLatitude, 'origin_lon': currentLongitude, 'destination_lat': dest_latitude, 'destination_lon': dest_longitude}
+	response = requests.get("https://developer.cumtd.com/api/v2.2/json/getplannedtripsbylatlon", params = parameters)
+	data = response.json()
+	times = []
+	for itinerarie in data['itineraries']:
+		print(itinerarie['travel_time'])
+		times.append(itinerarie['travel_time'])
+	return render_template('schedule.html', times=times)
 
 @app.route('/signup')
 def signup():
@@ -54,8 +56,10 @@ def signup():
 def login():
 	return render_template('login.html')
 
-@app.route('/map')
+@app.route('/map', methods=['POST'])
 def map():
+	selection = request.form['selection']
+	
 	return render_template('map.html')
 
 @app.route('/search')
@@ -87,3 +91,4 @@ def results():
 
 if __name__ == '__main__':
 	app.run(debug=True)
+	

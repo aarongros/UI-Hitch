@@ -6,20 +6,20 @@
 		<p class="lead">
 			Results.
 		</p>
-    {% for results in results %}
-    <form method="POST" action="/schedule">
+    {% for result in results %}
+    <form method="POST" action='/schedule'>
   			<div class="container" style="margin-bottom: 5px; color: white; background-color:#3c3c3c;">
   				<div class="row">
   					<div class="col-sm">
-  						<h4>{{ results.label }}</h4>
+  						<h4>{{ result.label }}</h4>
   					</div>
   					<div class="col-sm">
-  						<h6>Lon: {{ results.longitude }}</h6>
-              <br>
-              <h6>Lat: {{ results.latitude }}</h6>
+							<!-- <h6 name="longitude">Lon: {{ result.longitude }}</h6>
+							<h6 name="latitude">Lat: {{ result.latitude }}</h6> -->
+							<input type="hidden" name="longitude" value={{result.longitude}} readonly>
+							<input type="hidden" name="latitude" value={{result.latitude}} readonly>
   					</div>
   				</div>
-					Enter Name: <input type="text" name="selection">
 			    <input type="submit" value="Select">
   			</div>
     </form>
