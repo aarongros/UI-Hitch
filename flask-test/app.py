@@ -20,7 +20,7 @@ stations = [
 		'time': '1'
 	}
 ]
- 
+
 @app.route('/')
 def home():
 	return render_template('home.html')
@@ -39,7 +39,6 @@ def schedule():
 	currentLocation = response.json()
 	currentLongitude = currentLocation['longitude']
 	currentLatitude = currentLocation['latitude']
-
 	parameters = {'key': keys.cumtd_key, 'origin_lat': currentLatitude, 'origin_lon': currentLongitude, 'destination_lat': dest_latitude, 'destination_lon': dest_longitude}
 	response = requests.get("https://developer.cumtd.com/api/v2.2/json/getplannedtripsbylatlon", params = parameters)
 	
@@ -64,7 +63,7 @@ def login():
 @app.route('/map', methods=['POST'])
 def map():
 	selection = request.form['selection']
-	
+
 	return render_template('map.html')
 
 @app.route('/search')
@@ -91,9 +90,7 @@ def results():
 		result[counter]['longitude'] = coordinates[len(coordinates)-1][0]
 		result[counter]['latitude'] = coordinates[len(coordinates)-1][1]
 		counter += 1
-
 	return render_template('results.html', results = result)
 
 if __name__ == '__main__':
 	app.run(debug=True)
-	
