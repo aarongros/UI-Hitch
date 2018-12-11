@@ -32,8 +32,6 @@ def about():
 def schedule():
 	dest_latitude = request.form['latitude']
 	dest_longitude = request.form['longitude']
-	print(dest_longitude)
-	print(dest_latitude)
 
 	parameters = {'access_key': keys.ipstack_key}
 	response = requests.get("http://api.ipstack.com/check", params = parameters)
