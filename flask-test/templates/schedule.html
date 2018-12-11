@@ -8,13 +8,11 @@
 	</p>
 	{% for time in times %}
 	<form method="POST" action="/map">
-		<button type="submit">
-			<div class="container" style="margin-bottom: 5px; background-color:#61666b; color:white;">
-				<h4>{{ time }}</h4>
-				Enter Time: <input type="text" name="selection">
-				<input type="submit" value="Select">
-			</div>
-		</button>
+		<div class="container" style="margin-bottom: 5px; background-color:#61666b; color:white;">
+			<h4>{{ time }}</h4>
+			Enter Time: <input type="text" name="selection">
+			<input type="submit" value="Select">
+		</div>
 	</form>
 	{% endfor %}
 </div>
