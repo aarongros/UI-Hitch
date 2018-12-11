@@ -45,9 +45,9 @@ def schedule():
 	
 	data = tripPlanner.get_directions()
 	times = []
-	for itinerarie in data:
-		print(itinerarie['travel_time'])
-		times.append(itinerarie['travel_time'])
+	for itinerary in data:
+		print(itinerary['travel_time'])
+		times.append(itinerary['travel_time'])
 	return render_template('schedule.html', times=times, data=data)
 
 @app.route('/signup')

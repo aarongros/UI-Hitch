@@ -3,14 +3,14 @@
 import googlemaps
 from apikey import keys
 from cumtd_data_collection import cumtd_request_url
-import requests, sys, copy, json, csv, pprint
+import requests, sys, copy, json, csv, pprint, time, os, pytz
 from datetime import datetime, timedelta
-
 
 class TripPlanner:
     def __init__(self, start, end):
         self._orig = start
         self._dest = end
+        self._tz = pytz.timezone('America/Chicago')
         
         
     def get_directions(self):
@@ -62,7 +62,7 @@ class TripPlanner:
                     if departure['route']['route_id'].lower() == transit['line']['name'].lower():
                         real_time = departure['expected']
                         real_time_full = self._strptime(real_time)
-                        real_time_12hr = datetime.strftime(real_time_full, "%I:%M:%S%p")
+                        real_time_12hr = datetime.strftime(real_time_full, "%I:%M:%S%p").lower()
                         real_time_int = int(real_time_full.timestamp())
                         
                         if real_time_int < checkpoints[-1]: continue
@@ -90,7 +90,7 @@ class TripPlanner:
                     if departure['route']['route_id'].lower() == transit['line']['name'].lower():
                         real_time = departure['expected']
                         real_time_full = self._strptime(real_time)
-                        real_time_12hr = datetime.strftime(real_time_full, "%I:%M:%S%p")
+                        real_time_12hr = datetime.strftime(real_time_full, "%I:%M:%S%p").lower()
                         real_time_int = int(real_time_full.timestamp())
                         
                         if real_time_int < checkpoints[-1]: continue
@@ -115,7 +115,13 @@ class TripPlanner:
             elif leg['travel_mode'] == 'WALKING':
                 checkpoints.append(leg['duration']['value'] + checkpoints[-1])
 
-        # end time doesn't change UNLESS last leg is bus
+        trip['legs'][0]['arrival_time']['value'] = checkpoints[-1]
+        trip['legs'][0]['arrival_time']['text'] = datetime.strftime(datetime.fromtimestamp(checkpoints[-1]), '%I:%M%p')
+        duration = trip['legs'][0]['arrival_time']['value'] - trip['legs'][0]['departure_time']['value']
+        trip['legs'][0]['duration']['value'] = duration
+        trip['legs'][0]['duration']['text'] = "{0:.2f} mins".format(duration / 60)
+       
+         # end time doesn't change UNLESS last leg is bus
         # maybe do another call to API to figure out whether person can walk from bus endpoint
         # to destination?
 
