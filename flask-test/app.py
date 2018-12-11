@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, flash
 import requests, json, keys
+from tripplanner import TripPlanner
 
 result = []
 
@@ -40,12 +41,16 @@ def schedule():
 	currentLatitude = currentLocation['latitude']
 	parameters = {'key': keys.cumtd_key, 'origin_lat': currentLatitude, 'origin_lon': currentLongitude, 'destination_lat': dest_latitude, 'destination_lon': dest_longitude}
 	response = requests.get("https://developer.cumtd.com/api/v2.2/json/getplannedtripsbylatlon", params = parameters)
-	data = response.json()
+	
+	tripPlanner = TripPlanner(currentLatitude, currentLongitude, dest_latitude, dest_longitude, 1, 20)
+	tripPlanner.search()
+	
+	data = tripPlanner.get_directions()
 	times = []
-	for itinerarie in data['itineraries']:
+	for itinerarie in data:
 		print(itinerarie['travel_time'])
 		times.append(itinerarie['travel_time'])
-	return render_template('schedule.html', times=times)
+	return render_template('schedule.html', times=times, data=data)
 
 @app.route('/signup')
 def signup():

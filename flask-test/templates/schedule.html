@@ -4,7 +4,7 @@
 <div class="jumotron text-center">
 	<h1>Scheduler</h1>
 	<p class="lead">
-		These are the best routes.
+		These are the best routes. Select the one you want to take.
 	</p>
 	{% for time in times %}
 	<form method="POST" action="/map">
@@ -16,5 +16,6 @@
 		</button>
 	</form>
 	{% endfor %}
+	<div>{{data}}</div>
 </div>
 {% endblock %}
