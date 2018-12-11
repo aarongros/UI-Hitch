@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, flash
 import requests, json, keys
 
 result = []
@@ -30,22 +30,22 @@ def about():
 
 @app.route('/schedule', methods=['POST'])
 def schedule():
-	selection = request.form['selection']
+	dest_latitude = request.form['latitude']
+	dest_longitude = request.form['longitude']
+
 	parameters = {'access_key': keys.ipstack_key}
 	response = requests.get("http://api.ipstack.com/check", params = parameters)
 	currentLocation = response.json()
 	currentLongitude = currentLocation['longitude']
 	currentLatitude = currentLocation['latitude']
-	for elem in result:
-		if elem['label'] == selection:
-			parameters = {'key': keys.cumtd_key, 'origin_lat': currentLatitude, 'origin_lon': currentLongitude, 'destination_lat': elem['latitude'], 'destination_lon': elem['longitude']}
-			response = requests.get("https://developer.cumtd.com/api/v2.2/json/getplannedtripsbylatlon", params = parameters)
-			data = response.json()
-			times = []
-			for itinerarie in data['itineraries']:
-				times.append(itinerarie['travel_time'])
-			return render_template('schedule.html', times=times)
-	return render_template('schedule.html')
+	parameters = {'key': keys.cumtd_key, 'origin_lat': currentLatitude, 'origin_lon': currentLongitude, 'destination_lat': dest_latitude, 'destination_lon': dest_longitude}
+	response = requests.get("https://developer.cumtd.com/api/v2.2/json/getplannedtripsbylatlon", params = parameters)
+	data = response.json()
+	times = []
+	for itinerarie in data['itineraries']:
+		print(itinerarie['travel_time'])
+		times.append(itinerarie['travel_time'])
+	return render_template('schedule.html', times=times)
 
 @app.route('/signup')
 def signup():
