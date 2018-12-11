@@ -46,7 +46,7 @@ def schedule():
 	for itinerarie in data['itineraries']:
 		print(itinerarie['travel_time'])
 		times.append(itinerarie['travel_time'])
-	return render_template('schedule.html', times=times)
+	return render_template('schedule.html', times=times, data=data)
 
 @app.route('/signup')
 def signup():
