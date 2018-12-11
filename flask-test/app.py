@@ -33,6 +33,8 @@ def about():
 @app.route('/schedule', methods=['POST'])
 def schedule():
 	selection = request.form['selection']
+	latitude = request.form['latitude']
+	longitude = request.form['longitude']
 
 	print(selection)
 	for elem in result:
