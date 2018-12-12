@@ -48,6 +48,8 @@ class TripPlanner:
     def _edit_trip(self, trip):
         # edit all services to have accurate time(don't edit walk)
         for leg in trip['legs'][0]['steps']: # is this okay?
+            if 'departure_time' not in trip['legs'][0]:
+                return trip 
             checkpoints = [trip['legs'][0]['departure_time']['value']]
             if leg['travel_mode'] == 'TRANSIT':
                 transit = leg['transit_details']
@@ -130,6 +132,11 @@ class TripPlanner:
         stop_name = stop_name.replace(" and ", " & ")
         if stop_name == 'Pennsylvania & Dorner':
             stop_name = 'Penn & Dorner (NW Corner)'
+        stop_name = stop_name.replace(" Street ", " St. ")
+
+
+        threshold = 1e-3
+
         with open('google_transit/stops.txt', 'rt') as f:
             csv_reader = csv.reader(f)
             next(csv_reader, None) # skip header line
@@ -139,12 +146,14 @@ class TripPlanner:
                 if row[2] == stop_name:
                     # column stop_name
                     return row[0]
-                elif abs(row_lat - lat) < 1e-4 and abs(row_lon - lon) < 1e-4:
+                elif abs(row_lat - lat) < threshold and abs(row_lon - lon) < threshold:
                     # colum stop_lon
                     return row[0]
         raise Exception("stop {} not found!".format(stop_name))
 
     def _find_inconsistencies(self, trip):
+        if 'departure_time' not in trip['legs'][0]:
+            return True
         times = [trip['legs'][0]['departure_time']['value']]
         for leg in trip['legs'][0]['steps']: # is this okay?
             if leg['travel_mode'] == 'WALKING':
@@ -160,6 +169,8 @@ class TripPlanner:
 
 
     def _find_travel_time(self, trip):
+        if 'departure_time' not in trip['legs'][0]:
+            return
         total_travel_time = 0
         for leg in trip['legs'][0]['steps']:
             total_travel_time += leg['duration']['value']
@@ -174,6 +185,8 @@ class TripPlanner:
         self._sorted_trips = sorted(self._trips, key=lambda x: self._calculate_weighted_score(x))
        
     def _calculate_weighted_score(self, trip):
+        if 'departure_time' not in trip['legs'][0]:
+            return trip['legs'][0]['duration']['value']
         return 0.8 * trip['travel_time']['value'] + 0.2 * trip['wait_time']['value'] 
 
     def _strptime(self, time):
@@ -193,7 +206,7 @@ class TripPlanner:
             {"stop_id": stop_id}))
         result_json = r.json()
         if result_json['status']['code'] != 200:
-            raise Exception("error calling CUMTD API: {}".format(result_json['status']['msg']))
+            raise Exception("error calling CUMTD API: {} -> {}".format(stop_id, result_json['status']['msg']))
         return r.json()
 
     def pprint_to_file(self, obj, fout):

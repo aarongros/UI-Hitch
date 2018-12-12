@@ -7,6 +7,7 @@ def get_thinned_directions(all_directions):
     for direction in all_directions:
         directions = []
         for step in direction['legs'][0]['steps']:
+            pprint(step)
             if 'steps' not in step:
                 directions.append({'major': step['html_instructions'], 'steps': None})
             else:
@@ -18,7 +19,7 @@ def get_thinned_directions(all_directions):
     return all_paths
 
 def main():
-    trip_planner = TripPlanner("Siebel Center for Computer Science", "Pennsylvania Residence Hall")
+    trip_planner = TripPlanner("Siebel Center for Computer Science", "Illinois Street Residence Halls")
     trip_planner.search()
     pprint(get_thinned_directions(trip_planner.get_directions()))
 

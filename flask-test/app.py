@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, flash
 import requests, json, keys
 from tripplanner import TripPlanner
+from thinned_directions import get_thinned_directions
 
 result = []
 
@@ -48,13 +49,12 @@ def schedule():
 	
 	data = tripPlanner.get_directions()
 	arrival_times = []
-	test = {'time': "32:26"}
 	for itinerary in data:
 		try:
 			arrival_times.append(itinerary['legs'][0]['arrival_time']['text'])
 		except:
 			continue
-	return render_template('schedule.html', arrival_times=arrival_times, test=test)
+	return render_template('schedule.html', arrival_times=arrival_times, data=data)
 
 @app.route('/signup')
 def signup():
@@ -67,11 +67,10 @@ def login():
 @app.route('/map', methods=['POST'])
 def map():
 	selection = request.form['selection']
-
-	return render_template('map.html')
+	return render_template('map.html', itineraries = get_thinned_directions(selection))
 
 @app.route('/search')
-def Search():
+def search():
 	return render_template('search.html')
 
 @app.route('/results', methods=['POST'])

@@ -6,13 +6,12 @@
 	<p class="lead">
 		These are the best routes. Select the one you want to take.
 	</p>
-	{% for time in arrival_times %}
+	{% for itinerary in data %}
 	<form method="POST" action="/map">
 		<button type="submit">
 			<div class="container" style="margin-bottom: 5px; background-color:#61666b; color:white;">
-				<h4>Arrival Time: {{ time }}</h4>
-				<h6>{{ test['time'] }}</h6>
-				<input type="hidden" name="selection" value={{time}}>
+				<h4>Arrival Time: {{ itinerary['legs'][0]['arrival_time']['text'] }}</h4>
+				<input type="hidden" name="selection" value={{itinerary['legs'][0]}}>
 			</div>
 		</button>
 	</form>
