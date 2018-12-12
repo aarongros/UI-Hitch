@@ -128,6 +128,8 @@ class TripPlanner:
 
     def _to_stop_id(self, stop_name, lat, lon):
         stop_name = stop_name.replace(" and ", " & ")
+        if stop_name == 'Pennsylvania & Dorner':
+            stop_name = 'Penn & Dorner (NW Corner)'
         with open('google_transit/stops.txt', 'rt') as f:
             csv_reader = csv.reader(f)
             next(csv_reader, None) # skip header line
